@@ -12,20 +12,22 @@
   "dependencies": {
     "@expo/metro-runtime": "~3.1.1",
     "expo": "~50.0.17",
+    "expo-document-picker": "~11.10.1",
+    "expo-file-system": "~16.0.9",
     "expo-status-bar": "~1.11.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-native": "0.73.6",
-    "react-native-web": "~0.19.6",
-    "expo-document-picker": "~11.10.1",
-    "expo-file-system": "~16.0.9"
+    "react-native-web": "~0.19.6"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
     "@babel/eslint-parser": "^7.24.5",
+    "@types/react": "^18.3.3",
     "eslint": "^8.57.0",
     "eslint-plugin-react": "^7.34.1",
-    "eslint-plugin-react-native": "^4.1.0"
+    "eslint-plugin-react-native": "^4.1.0",
+    "typescript": "^5.4.5"
   },
   "private": true
 }
