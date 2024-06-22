@@ -4,7 +4,7 @@ export interface DetailData {
   frequency: number;
   heartRate: number;
 }
-  
+
 export interface GpsData {
   timeStamp: number;
   latitude: number;
@@ -25,3 +25,5 @@ export interface TrackPointExtension {
   cad: number;
   hr?: number;
 }
+
+export type LogParams = any[]

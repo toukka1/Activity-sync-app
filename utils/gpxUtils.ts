@@ -5,17 +5,17 @@ const { Point, Metadata, Track, Segment } = StravaBuilder.MODELS
 
 
 const opHealthFitnessTypes = new Map([
-    [13, 'running']
-  ])
-  
+  [13, 'running']
+])
+
 function resolveSportType (numericSportType: number) {
   const result = opHealthFitnessTypes.get(numericSportType)
   return (result === undefined) ? 'Other' : result
 }
 
-async function convertOPHealthFileToGPX (file: FileData): Promise<string> {
+export default async function convertOPHealthFileToGPX(file: FileData): Promise<string> {
   const trackPoints = file.detailData.map((data: DetailData): InstanceType<typeof Point> => {
-    const point = file.gpsData.find((el: GpsData) => el.timeStamp === data.timeStamp)
+    const point = file.gpsData.find((gpsPoint: GpsData) => gpsPoint.timeStamp === data.timeStamp)
     let trackPoint: InstanceType<typeof Point>
 
     if (!isEmpty(point)) {
