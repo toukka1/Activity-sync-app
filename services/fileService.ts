@@ -11,9 +11,6 @@ export default async function handleFileUpload() {
     const fileContentJson: FileData = JSON.parse(fileContent)
     const gpx: string = await convertOPHealthFileToGPX(fileContentJson)
     await createAndWriteToFile(gpx)
-
-    const uri2: string = `${FileSystem.documentDirectory}testgpx.gpx`
-    await readFile(uri2)
   } catch(error) {
     logger.error('An error occurred:', error)
   }
