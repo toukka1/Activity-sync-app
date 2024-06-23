@@ -11,10 +11,12 @@
   },
   "dependencies": {
     "@expo/metro-runtime": "~3.1.1",
-    "@react-native-async-storage/async-storage": "1.21.0",
+    "axios": "^1.7.2",
     "expo": "51.0.14",
+    "expo-auth-session": "^5.5.2",
     "expo-document-picker": "~11.10.1",
     "expo-file-system": "~16.0.9",
+    "expo-secure-store": "~13.0.2",
     "expo-status-bar": "~1.11.1",
     "gpx-builder": "^5.3.0",
     "lodash": "^4.17.21",
