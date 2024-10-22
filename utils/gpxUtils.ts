@@ -14,49 +14,51 @@ interface Waypoint extends LatLng {
 }
 
 const opHealthFitnessTypes = new Map([
-  [13, 'running']
+    [13, 'running']
 ])
 
 function resolveSportType (numericSportType: number) {
-  const result = opHealthFitnessTypes.get(numericSportType)
-  return (result === undefined) ? 'Other' : result
+    const result = opHealthFitnessTypes.get(numericSportType)
+    return (result === undefined) ? 'Other' : result
 }
 
 export default async function convertOPHealthFileToGPX(file: FileData): Promise<string> {
-  const trackPoints = file.detailData.map((data: DetailData): InstanceType<typeof Point> => {
-    const point = file.gpsData.find((gpsPoint: GpsData) => gpsPoint.timeStamp === data.timeStamp)
-    let trackPoint: InstanceType<typeof Point>
+    let count = 0
+    const trackPoints = file.detailData.map((data: DetailData): InstanceType<typeof Point> => {
 
-    if (!isEmpty(point)) {
-      const extension: TrackPointExtension = {
-        ele: data.elevation / 10,
-        time: new Date(point.timeStamp * 1000),
-        cad: data.frequency / 2,
-        hr: data.heartRate !== 0 ? data.heartRate : undefined
-      }
-      trackPoint = new Point(point.latitude, point.longitude, extension)
-    } else
-      trackPoint = new Point(0, 0, {
-        time: new Date(data.timeStamp * 1000),
-        hr: data.heartRate
-      })
+        const point = file.gpsData.find((gpsPoint: GpsData) => Math.abs(gpsPoint.timeStamp - data.timeStamp) <= 2)
 
-    return trackPoint
-  }).filter(a => a !== undefined)
+        let trackPoint: InstanceType<typeof Point>
 
-  const tracks = [new Track([new Segment(trackPoints)], {
-    type: resolveSportType(file.sportType)
-  })]
+        const extension: TrackPointExtension = {
+            ele: data.elevation / 10,
+            time: new Date(data.timeStamp * 1000),
+            cad: data.frequency / 2,
+            hr: data.heartRate
+        }
 
-  const gpxData = new StravaBuilder()
-  gpxData.setTracks(tracks)
-  gpxData.setMetadata(new Metadata({
-    name: 'Run',
-    time: new Date(file.startTime * 1000),
-    desc: 'OnePlus Watch activity'
-  }))
+        if (!isEmpty(point)) {
+            count++
+            trackPoint = new Point(point.latitude, point.longitude, extension)
+        } else
+            trackPoint = new Point(0, 0, extension)
 
-  return buildGPX(gpxData.toObject())
+        return trackPoint
+    }).filter(a => a !== undefined)
+
+    const tracks = [new Track([new Segment(trackPoints)], {
+        type: resolveSportType(file.sportType)
+    })]
+
+    const gpxData = new StravaBuilder()
+    gpxData.setTracks(tracks)
+    gpxData.setMetadata(new Metadata({
+        name: 'Run',
+        time: new Date(file.startTime * 1000),
+        desc: 'OnePlus Watch activity'
+    }))
+
+    return buildGPX(gpxData.toObject())
 }
 
 export function calculateTotalDistance(points: LatLng[]): number {
@@ -97,8 +99,8 @@ export function calculateBoundingBox(coordinates: LatLng[]) {
     const maxLon = Math.max(...lons)
 
     return {
-        latitudeDelta: maxLat - minLat + 0.01, // Add a small padding
-        longitudeDelta: maxLon - minLon + 0.01, // Add a small padding
+        latitudeDelta: maxLat - minLat + 0.01,
+        longitudeDelta: maxLon - minLon + 0.01,
         centerLatitude: (minLat + maxLat) / 2,
         centerLongitude: (minLon + maxLon) / 2
     }
