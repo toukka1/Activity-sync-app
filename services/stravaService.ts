@@ -1,15 +1,23 @@
 import axios from 'axios'
 import { Alert } from 'react-native'
+import * as SecureStore from 'expo-secure-store'
 import { FormDataFile } from '../types/fileTypes'
 const logger = require('../utils/logger')
 
 const STRAVA_UPLOAD_URL = 'https://www.strava.com/api/v3/uploads'
 
-export async function uploadToStrava(fileUri: string, accessToken: string): Promise<void> {
+export async function uploadToStrava(fileUri: string, activityName: string): Promise<void> {
     try {
+
+        // Retrieve the access token from SecureStore
+        const accessToken = await SecureStore.getItemAsync('strava_access_token')
+        if (!accessToken) {
+            throw new Error('Access token not found. Please log in to Strava.')
+        }
+
         const file: FormDataFile = {
             uri: fileUri,
-            name: 'activity.gpx',
+            name: activityName,
             type: 'application/gpx+xml',
         }
 
