@@ -26,4 +26,10 @@ export interface TrackPointExtension {
   hr?: number;
 }
 
+export interface FormDataFile {
+    uri: string
+    name: string
+    type: string
+}
+
 export type LogParams = any[]
