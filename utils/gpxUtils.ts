@@ -5,7 +5,10 @@ const { Point, Metadata, Track, Segment } = StravaBuilder.MODELS
 import { LatLng } from 'react-native-maps'
 import { XMLParser } from 'fast-xml-parser'
 
+import { getDirections } from '../services/mapboxService'
 import { FileData, DetailData, GpsData, TrackPointExtension } from '../types/fileTypes'
+
+const logger = require('./logger')
 
 
 interface Waypoint extends LatLng {
@@ -23,7 +26,26 @@ function resolveSportType (numericSportType: number) {
 }
 
 export default async function convertOPHealthFileToGPX(file: FileData): Promise<string> {
-    let count = 0
+
+    const firstValidPoint = file.gpsData[0]
+    const lastPoint = file.gpsData[file.gpsData.length - 1]
+
+    const totalRunDistance = file.totalDistance
+    const startEndDistance = calculateDistance(firstValidPoint, lastPoint)
+
+    // Threshold for loop detection (e.g., 20% of total run distance)
+    const LOOP_DISTANCE_THRESHOLD_RATIO = 1
+
+    let generatedTrackPoints: GpsData[]
+
+    if (startEndDistance / totalRunDistance < LOOP_DISTANCE_THRESHOLD_RATIO) {
+        // Assume the run is a loop and generate points based on that
+        generatedTrackPoints = await generateCircularPathGpsData(firstValidPoint, lastPoint, file)
+    } else {
+        // Fall back to straight-line generation method
+        //generatedTrackPoints = generateLinearPathPoints(firstValidPoint, file)
+    }
+
     const trackPoints = file.detailData.map((data: DetailData): InstanceType<typeof Point> => {
 
         const point = file.gpsData.find((gpsPoint: GpsData) => Math.abs(gpsPoint.timeStamp - data.timeStamp) <= 2)
@@ -38,10 +60,16 @@ export default async function convertOPHealthFileToGPX(file: FileData): Promise<
         }
 
         if (!isEmpty(point)) {
-            count++
             trackPoint = new Point(point.latitude, point.longitude, extension)
-        } else
-            trackPoint = new Point(0, 0, extension)
+        } else {
+            // Use generated data for missing points
+            const generatedPoint = generatedTrackPoints.find(g => Math.abs(g.timeStamp - data.timeStamp) <= 2)
+            if (generatedPoint) {
+                trackPoint = new Point(generatedPoint.latitude, generatedPoint.longitude, extension)
+            } else {
+                trackPoint = new Point(0, 0, extension) // Fallback if no data found
+            }
+        }
 
         return trackPoint
     }).filter(a => a !== undefined)
@@ -59,6 +87,66 @@ export default async function convertOPHealthFileToGPX(file: FileData): Promise<
     }))
 
     return buildGPX(gpxData.toObject())
+}
+
+async function generateCircularPathGpsData(firstPoint: GpsData, lastPoint: GpsData, file: FileData): Promise<GpsData[]> {
+    try {
+        // Call Mapbox API to get the route between lastPoint and firstPoint
+        const coordinates = await getDirections(lastPoint.longitude, lastPoint.latitude, firstPoint.longitude, firstPoint.latitude)
+
+        // Calculate the total missing distance (based on timestamps and pace)
+        const missingDistance = calculateMissingDistance(file)
+
+        // Backtrack along the coordinates, summing up distances until we've covered the missing distance
+        let accumulatedDistance = 0
+        let backtrackedGpsData: GpsData[] = []
+
+        for (let i = coordinates.length - 2; i >= 0; i--) {
+            const [currentLon, currentLat] = coordinates[i]
+            const [nextLon, nextLat] = coordinates[i + 1]
+
+            const distanceBetweenPoints = calculateDistance({ longitude: currentLon, latitude: currentLat }, { longitude: nextLon, latitude: nextLat })
+            accumulatedDistance += distanceBetweenPoints
+
+            if (accumulatedDistance >= missingDistance) {
+                break  // Stop once we've covered the missing distance
+            }
+
+            // Calculate timestamp for this generated point based on index and the known time interval
+            const timeStamp = firstPoint.timeStamp - (accumulatedDistance * file.avgSpeed / 1000)
+
+            backtrackedGpsData.push({
+                timeStamp,
+                latitude: currentLat,
+                longitude: currentLon,
+                speed: 0
+            })
+        }
+
+        return backtrackedGpsData
+    } catch (error) {
+        console.error('Error generating circular path GPS data:', error)
+        throw error
+    }
+}
+
+// Calculate the distance that should have been covered based on missing timestamps and pace
+function calculateMissingDistance(file: FileData): number {
+
+    const firstGpsTimestamp = file.gpsData[0].timeStamp
+    const firstDetailTimestamp = file.detailData[0].timeStamp
+
+    // Calculate the time difference between the first detail point and the first GPS-acquired point
+    const timeDifference = firstGpsTimestamp - firstDetailTimestamp
+
+    // Calculate the average of the first few non-zero paces
+    const averagePace = file.avgSpeed
+    const paceInKmPerSecond = 1 / averagePace
+
+    // Calculate distance covered using the pace and time difference (in meters)
+    const distanceCovered = timeDifference * paceInKmPerSecond * 1000
+
+    return distanceCovered
 }
 
 export function calculateTotalDistance(points: LatLng[]): number {
