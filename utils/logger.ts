@@ -1,13 +1,13 @@
 import { LogParams } from '../types/fileTypes'
 
 const info = (...params: LogParams) => {
-  if (process.env.NODE_ENV === 'development') {
+  if (__DEV__) {
     console.log(...params)
   }
 }
 
 const error = (...params: LogParams) => {
-  if (process.env.NODE_ENV === 'development') {
+  if (__DEV__) {
     console.error(...params)
   }
 }

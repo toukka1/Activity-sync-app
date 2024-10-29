@@ -13,12 +13,16 @@ const discovery = {
     revocationEndpoint: 'https://www.strava.com/oauth/deauthorize',
 }
 
+const redirectUri = __DEV__
+    ? makeRedirectUri()
+    : 'myapp://myapp.com'
+
 export function useStravaAuthRequest() {
     const [request, response, promptAsync] = useAuthRequest(
         {
             clientId: config.STRAVA_CLIENT_ID,
             scopes: ['activity:write'],
-            redirectUri: makeRedirectUri(),
+            redirectUri: redirectUri,
         },
         discovery
     )
