@@ -1,4 +1,4 @@
-import { LogParams } from '../types/fileTypes'
+import { LogParams } from '../types/types'
 
 const info = (...params: LogParams) => {
   if (__DEV__) {

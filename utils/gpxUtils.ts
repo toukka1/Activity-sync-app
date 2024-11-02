@@ -6,7 +6,7 @@ import { LatLng } from 'react-native-maps'
 import { XMLParser } from 'fast-xml-parser'
 
 import { getDirections } from '../services/mapboxService'
-import { FileData, DetailData, GpsData, TrackPointExtension } from '../types/fileTypes'
+import { FileData, DetailData, GpsData, TrackPointExtension } from '../types/types'
 
 const logger = require('./logger')
 

@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { Alert } from 'react-native'
 import * as SecureStore from 'expo-secure-store'
-import { FormDataFile } from '../types/fileTypes'
+import { FormDataFile } from '../types/types'
 const logger = require('../utils/logger')
 
 const STRAVA_UPLOAD_URL = 'https://www.strava.com/api/v3/uploads'

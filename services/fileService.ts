@@ -1,6 +1,6 @@
 import * as DocumentPicker from 'expo-document-picker'
 import * as FileSystem from 'expo-file-system'
-import { FileData } from '../types/fileTypes'
+import { FileData } from '../types/types'
 import convertOPHealthFileToGPX from '../utils/gpxUtils'
 
 const logger = require('../utils/logger')
