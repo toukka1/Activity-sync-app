@@ -5,7 +5,7 @@ import { useEffect } from 'react'
 import { Alert } from 'react-native'
 
 const logger = require('../utils/logger')
-const config = require('../utils/config')
+import config from '../utils/config'
 
 const discovery = {
     authorizationEndpoint: 'https://www.strava.com/oauth/mobile/authorize',

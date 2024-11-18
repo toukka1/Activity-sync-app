@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const logger = require('../utils/logger')
-const config = require('../utils/config')
+import config from '../utils/config'
 
 const MAPBOX_BASE_URL = 'https://api.mapbox.com/directions/v5/mapbox'
 
