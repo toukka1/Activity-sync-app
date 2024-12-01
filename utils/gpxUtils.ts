@@ -8,7 +8,7 @@ import { XMLParser } from 'fast-xml-parser'
 import { getDirections } from '../services/mapboxService'
 import { FileData, DetailData, GpsData, TrackPointExtension } from '../types/types'
 
-const logger = require('./logger')
+import logger from './logger'
 
 
 interface Waypoint extends LatLng {

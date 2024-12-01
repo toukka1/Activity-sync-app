@@ -3,7 +3,7 @@ import { View, Text, Button, Modal, TextInput, StyleSheet, TouchableOpacity } fr
 import MapView, { Polyline, LatLng } from 'react-native-maps'
 import { calculateTotalDistance, calculateBoundingBox, parseGPXFile } from '../utils/gpxUtils'
 
-const logger = require('../utils/logger')
+import logger from '../utils/logger'
 
 
 interface MapModalProps {

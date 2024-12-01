@@ -3,7 +3,7 @@ import * as FileSystem from 'expo-file-system'
 import { FileData } from '../types/types'
 import convertOPHealthFileToGPX from '../utils/gpxUtils'
 
-const logger = require('../utils/logger')
+import logger from '../utils/logger'
 
 export default async function handleFilePick(): Promise<string> {
     try {

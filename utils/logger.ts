@@ -12,6 +12,7 @@ const error = (...params: LogParams) => {
     }
 }
 
-module.exports = {
-    info, error
+export default {
+    info,
+    error
 }

@@ -5,7 +5,7 @@ import { useStravaAuthRequest } from '../services/authService'
 import { uploadToStrava } from '../services/stravaService'
 import MapModal from './MapModal'
 
-const logger = require('../utils/logger')
+import logger from '../utils/logger'
 
 export default function Home() {
     const { request, promptAsync } = useStravaAuthRequest()
