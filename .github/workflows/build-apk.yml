@@ -36,6 +36,9 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
+      - name: Pull EAS environment variables
+        run: eas env:pull preview
+
       - name: Build Android app
         run: eas build --platform android --profile preview --local --output ${{ github.workspace }}/app-release.apk
       - name: Upload APK artifact

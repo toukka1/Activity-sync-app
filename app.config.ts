@@ -2,7 +2,7 @@ import { ConfigContext, ExpoConfig } from '@expo/config';
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
     ...config,
-    name: "activity-sync-app",
+    name: "Activity sync",
     slug: "activity-sync-app",
     version: "1.0.0",
     orientation: "portrait",

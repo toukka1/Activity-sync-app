@@ -1,13 +1,12 @@
 import axios from 'axios'
 
-const logger = require('../utils/logger')
-import config from '../utils/config'
+import logger from '../utils/logger'
 
 const MAPBOX_BASE_URL = 'https://api.mapbox.com/directions/v5/mapbox'
 
 export async function getDirections(startLon: number, startLat: number, endLon: number, endLat: number): Promise<number[][]> {
     try {
-        const url = `${MAPBOX_BASE_URL}/walking/${startLon},${startLat};${endLon},${endLat}?geometries=geojson&access_token=${config.MAPBOX_ACCESS_TOKEN}`
+        const url = `${MAPBOX_BASE_URL}/walking/${startLon},${startLat};${endLon},${endLat}?geometries=geojson&access_token=${process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN}`
         const response = await axios.get(url)
 
         if (response.data.code === 'Ok') {

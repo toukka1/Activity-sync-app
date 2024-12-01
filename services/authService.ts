@@ -4,8 +4,7 @@ import axios from 'axios'
 import { useEffect } from 'react'
 import { Alert } from 'react-native'
 
-const logger = require('../utils/logger')
-import config from '../utils/config'
+import logger from '../utils/logger'
 
 const discovery = {
     authorizationEndpoint: 'https://www.strava.com/oauth/mobile/authorize',
@@ -20,7 +19,7 @@ const redirectUri = __DEV__
 export function useStravaAuthRequest() {
     const [request, response, promptAsync] = useAuthRequest(
         {
-            clientId: config.STRAVA_CLIENT_ID,
+            clientId: process.env.EXPO_PUBLIC_STRAVA_CLIENT_ID || '',
             scopes: ['activity:write'],
             redirectUri: redirectUri,
         },
@@ -34,8 +33,8 @@ export function useStravaAuthRequest() {
 
             // Exchange authorization code for access token
             axios.post('https://www.strava.com/oauth/token', {
-                client_id: config.STRAVA_CLIENT_ID,
-                client_secret: config.STRAVA_CLIENT_SECRET,
+                client_id: process.env.EXPO_PUBLIC_STRAVA_CLIENT_ID,
+                client_secret: process.env.EXPO_PUBLIC_STRAVA_CLIENT_SECRET,
                 code,
                 grant_type: 'authorization_code',
             })
