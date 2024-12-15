@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { View, Text, Button, Modal, TextInput, StyleSheet, TouchableOpacity } from 'react-native'
-import MapView, { Polyline, LatLng } from 'react-native-maps'
+import MapView, { Polyline, LatLng, PROVIDER_GOOGLE } from 'react-native-maps'
 import { calculateTotalDistance, calculateBoundingBox, parseGPXFile } from '../utils/gpxUtils'
 
 import logger from '../utils/logger'
@@ -79,6 +79,7 @@ const MapModal: React.FC<MapModalProps> = ({ gpxFileUri, isVisible, onClose, onC
                     {/* Map displaying the GPX route */}
                     {validCoordinates.length > 0 && (
                         <MapView
+                            provider={PROVIDER_GOOGLE}
                             style={styles.map}
                             initialRegion={{
                                 latitude: boundingBox ? boundingBox.centerLatitude : validCoordinates[0].latitude,
