@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
-import { StyleSheet, Text, View, Button } from 'react-native'
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
+
 import handleFilePick from '../services/fileService'
 import { useStravaAuthRequest } from '../services/authService'
 import { uploadToStrava } from '../services/stravaService'
@@ -8,7 +9,7 @@ import MapModal from './MapModal'
 import logger from '../utils/logger'
 
 export default function Home() {
-    const { request, promptAsync } = useStravaAuthRequest()
+    const { isConnected, promptAsync, isLoading, disconnect } = useStravaAuthRequest()
     const [isModalVisible, setModalVisible] = useState(false)
     const [gpxFileUri, setGpxFileUri] = useState('')
 
@@ -37,19 +38,33 @@ export default function Home() {
         setGpxFileUri('')
     }
 
+    async function handleConnect() {
+        await promptAsync()
+    }
+
     return (
         <View style={styles.container}>
             <Text style={styles.text}>Choose activities to upload</Text>
 
-            <Button title="Browse" onPress={handleFileSelect} />
+            <TouchableOpacity
+                style={isConnected ? styles.browseButton : styles.opaqueBrowseButton}
+                onPress={handleFileSelect}
+                disabled={!isConnected}
+            >
+                <Text style={styles.buttonText}>Browse</Text>
+            </TouchableOpacity>
 
-            <Button
-                disabled={!request}
-                title="Login"
-                onPress={() => {
-                    promptAsync()
-                }}
-            />
+            {isConnected ? <Text style={styles.text}>Connected to Strava</Text> : null}
+
+            <TouchableOpacity
+                style={isConnected ? styles.disconnectButton : styles.connectButton}
+                onPress={isLoading ? () => {} : (isConnected ? disconnect : handleConnect)}
+            >
+                <Text style={styles.buttonText}>
+                    {isConnected ? 'Disconnect' : 'Connect to Strava'}
+                </Text>
+            </TouchableOpacity>
+
             {gpxFileUri && (
                 <MapModal
                     isVisible={isModalVisible}
@@ -73,5 +88,35 @@ const styles = StyleSheet.create({
         color: '#808080',
         fontSize: 15,
         fontWeight: 'bold',
+    },
+    buttonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    browseButton: {
+        backgroundColor: '#007AFF',
+        padding: 10,
+        borderRadius: 5,
+        marginBottom: 10,
+    },
+    opaqueBrowseButton: {
+        backgroundColor: '#007AFF',
+        padding: 10,
+        borderRadius: 5,
+        marginBottom: 10,
+        opacity: 0.3,
+    },
+    connectButton: {
+        backgroundColor: 'green',
+        padding: 10,
+        borderRadius: 5,
+        marginTop: 10,
+    },
+    disconnectButton: {
+        backgroundColor: 'red',
+        padding: 10,
+        borderRadius: 5,
+        marginTop: 10,
     },
 })

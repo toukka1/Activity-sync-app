@@ -1,7 +1,7 @@
-import { makeRedirectUri, useAuthRequest, AuthSessionResult } from 'expo-auth-session'
+import { makeRedirectUri, useAuthRequest, AuthSessionResult, AuthRequest } from 'expo-auth-session'
 import * as SecureStore from 'expo-secure-store'
 import axios from 'axios'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Alert } from 'react-native'
 
 import logger from '../utils/logger'
@@ -12,44 +12,145 @@ const discovery = {
     revocationEndpoint: 'https://www.strava.com/oauth/deauthorize',
 }
 
+// Dynamically generate the redirect URI based on the environment
 const redirectUri = __DEV__
     ? makeRedirectUri()
     : 'myapp://myapp.com'
 
-export function useStravaAuthRequest() {
+interface StravaAuthHook {
+    request: AuthRequest | null
+    promptAsync: () => Promise<AuthSessionResult>
+    isConnected: boolean
+    isLoading: boolean
+    disconnect: () => Promise<void>
+}
+
+export async function storeTokens(data: any) {
+    const { access_token, refresh_token, expires_at } = data
+    await SecureStore.setItemAsync('strava_access_token', access_token)
+    await SecureStore.setItemAsync('strava_refresh_token', refresh_token)
+    await SecureStore.setItemAsync('strava_expires_at', expires_at.toString())
+}
+
+export async function refreshAccessToken() {
+    try {
+        const refreshToken = await SecureStore.getItemAsync('strava_refresh_token')
+        if (!refreshToken) {
+            throw new Error('No refresh token found')
+        }
+
+        const res = await axios.post(discovery.tokenEndpoint, {
+            client_id: process.env.EXPO_PUBLIC_STRAVA_CLIENT_ID,
+            client_secret: process.env.EXPO_PUBLIC_STRAVA_CLIENT_SECRET,
+            refresh_token: refreshToken,
+            grant_type: 'refresh_token',
+        })
+
+        await storeTokens(res.data)
+        return res.data.access_token
+    } catch (error) {
+        logger.error('Error refreshing access token:', error)
+        return null
+    }
+}
+
+export async function getAccessToken() {
+    const expiresAt = await SecureStore.getItemAsync('strava_expires_at')
+    const currentTime = Math.floor(Date.now() / 1000)
+
+    if (expiresAt && currentTime >= parseInt(expiresAt, 10)) {
+        return await refreshAccessToken()
+    }
+
+    return await SecureStore.getItemAsync('strava_access_token')
+}
+
+export async function disconnectStrava() {
+    try {
+        const accessToken = await getAccessToken()
+        if (accessToken) {
+            await axios.post(discovery.revocationEndpoint, {}, {
+                headers: { Authorization: `Bearer ${accessToken}` },
+            })
+        }
+        await SecureStore.deleteItemAsync('strava_access_token')
+        await SecureStore.deleteItemAsync('strava_refresh_token')
+        await SecureStore.deleteItemAsync('strava_expires_at')
+    } catch (error) {
+        logger.error('Error disconnecting from Strava:', error)
+    }
+}
+
+export function useStravaAuthRequest(): StravaAuthHook {
+    const [isLoading, setIsLoading] = useState(false)
+    const [isConnected, setIsConnected] = useState(false)
     const [request, response, promptAsync] = useAuthRequest(
         {
             clientId: process.env.EXPO_PUBLIC_STRAVA_CLIENT_ID || '',
             scopes: ['activity:write'],
-            redirectUri: redirectUri,
+            redirectUri,
         },
         discovery
     )
 
-    // Handle response and token exchange
+    // Check connection status on mount
     useEffect(() => {
-        if (response?.type === 'success') {
-            const { code } = response.params
+        const checkConnection = async () => {
+            const token = await SecureStore.getItemAsync('strava_access_token')
+            setIsConnected(!!token)
+        }
+        checkConnection()
+    }, [])
 
-            // Exchange authorization code for access token
-            axios.post('https://www.strava.com/oauth/token', {
-                client_id: process.env.EXPO_PUBLIC_STRAVA_CLIENT_ID,
-                client_secret: process.env.EXPO_PUBLIC_STRAVA_CLIENT_SECRET,
-                code,
-                grant_type: 'authorization_code',
-            })
-                .then(response => {
-                    const accessToken = response.data.access_token
-                    // Store the token for later use
-                    SecureStore.setItemAsync('strava_access_token', accessToken)
-                    Alert.alert('Authentication Success', 'You are successfully authenticated with Strava!')
-                })
-                .catch(error => {
+    // Handle response and exchange authorization code for tokens
+    useEffect(() => {
+        const exchangeToken = async () => {
+            if (response?.type === 'success') {
+                setIsLoading(true)
+                const { code } = response.params
+
+                try {
+                    const res = await axios.post(discovery.tokenEndpoint, {
+                        client_id: process.env.EXPO_PUBLIC_STRAVA_CLIENT_ID,
+                        client_secret: process.env.EXPO_PUBLIC_STRAVA_CLIENT_SECRET,
+                        code,
+                        grant_type: 'authorization_code',
+                    })
+
+                    storeTokens(res.data)
+                    setIsConnected(true)
+                } catch (error) {
                     logger.error('Error exchanging authorization code for token:', error)
                     Alert.alert('Authentication Error', 'Failed to authenticate with Strava. Please try again.')
-                })
+                } finally {
+                    setIsLoading(false)
+                }
+            }
         }
+
+        exchangeToken()
     }, [response])
 
-    return { request, response, promptAsync }
+    // Disconnect from Strava
+    const disconnect = async () => {
+        try {
+            const token = await SecureStore.getItemAsync('strava_access_token')
+            if (token) {
+                await axios.post(discovery.revocationEndpoint, {}, {
+                    headers: { Authorization: `Bearer ${token}` },
+                })
+            }
+
+            await SecureStore.deleteItemAsync('strava_access_token')
+            await SecureStore.deleteItemAsync('strava_refresh_token')
+            await SecureStore.deleteItemAsync('strava_expires_at')
+
+            setIsConnected(false)
+        } catch (error) {
+            logger.error('Error disconnecting from Strava:', error)
+            Alert.alert('Error', 'Failed to disconnect from Strava.')
+        }
+    }
+
+    return { request, promptAsync, isConnected, isLoading, disconnect }
 }
