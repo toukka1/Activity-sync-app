@@ -6,15 +6,10 @@ import { LatLng } from 'react-native-maps'
 import { XMLParser } from 'fast-xml-parser'
 
 import { getDirections } from '../services/mapboxService'
-import { FileData, DetailData, GpsData, TrackPointExtension } from '../types/types'
+import { FileData, DetailData, GpsData, TrackPointExtension, Waypoint } from '../types/types'
 
 import logger from './logger'
 
-
-interface Waypoint extends LatLng {
-    heartRate: number
-    cadence: number
-}
 
 const opHealthFitnessTypes = new Map([
     [13, 'running']
@@ -26,6 +21,10 @@ function resolveSportType (numericSportType: number) {
 }
 
 export default async function convertOPHealthFileToGPX(file: FileData): Promise<string> {
+
+    if (!file.gpsData || file.gpsData.length === 0 || !file.detailData || file.detailData.length == 0) {
+        throw new Error('GPS or detail data missing in the provided file.')
+    }
 
     const firstValidPoint = file.gpsData[0]
     const lastPoint = file.gpsData[file.gpsData.length - 1]
@@ -117,7 +116,7 @@ async function generateCircularPathGpsData(firstPoint: GpsData, lastPoint: GpsDa
             accumulatedDistance += distanceBetweenPoints
 
             if (accumulatedDistance >= missingDistance) {
-                break  // Stop once missing distance is covered
+                break  // Stop if  missing distance is covered
             }
 
             // Calculate timestamp for this generated point based on index and the known time interval
@@ -133,7 +132,7 @@ async function generateCircularPathGpsData(firstPoint: GpsData, lastPoint: GpsDa
 
         return backtrackedGpsData
     } catch (error) {
-        console.error('Error generating circular path GPS data:', error)
+        logger.error('Error generating circular path GPS data:', error)
         throw error
     }
 }
@@ -145,10 +144,10 @@ async function generateLinearPathGpsData(firstPoint: GpsData, file: FileData): P
     const missingDistance = calculateMissingDistance(file)
 
     // Estimate the initial direction based on the first few points
-    const initialDirection = estimateInitialDirection(file.gpsData)
+    const initialDirection = calculateInitialDirection(file.gpsData)
 
     // Calculate a point some distance backward from the first GPS-acquired point, in the initial direction
-    const estimatedStartPoint = getPointInDirection(firstPoint, initialDirection, missingDistance)
+    const estimatedStartPoint = calculatePointInDirection(firstPoint, initialDirection, missingDistance)
 
     const routeCoordinates = await getDirections(estimatedStartPoint.longitude, 
         estimatedStartPoint.latitude, 
@@ -205,7 +204,7 @@ function calculateMissingDistance(file: FileData): number {
     return distanceCovered
 }
 
-function estimateInitialDirection(gpsData: GpsData[]): { latitudeDelta: number, longitudeDelta: number } {
+function calculateInitialDirection(gpsData: GpsData[]): { latitudeDelta: number, longitudeDelta: number } {
     const firstPoint = gpsData[0]
     const secondPoint = gpsData[1]
 
@@ -215,7 +214,7 @@ function estimateInitialDirection(gpsData: GpsData[]): { latitudeDelta: number, 
     }
 }
 
-function getPointInDirection(startPoint: GpsData, direction: { latitudeDelta: number, longitudeDelta: number }, distance: number): { latitude: number, longitude: number } {
+function calculatePointInDirection(startPoint: GpsData, direction: { latitudeDelta: number, longitudeDelta: number }, distance: number): { latitude: number, longitude: number } {
 
     const magnitude = Math.sqrt(direction.latitudeDelta ** 2 + direction.longitudeDelta ** 2)
     const scale = (distance / 1000) / (magnitude * 111.32) // Convert km to degrees (approximate conversion factor)
@@ -294,7 +293,7 @@ export async function parseGPXFile(gpxFileUri: string | null): Promise<Waypoint[
 
         return waypoints
     } catch (error) {
-        console.error('Error parsing GPX file:', error)
+        logger.error('Error parsing GPX file:', error)
         return []
     }
 }

@@ -136,21 +136,38 @@ export function useStravaAuthRequest(): StravaAuthHook {
         try {
             const token = await SecureStore.getItemAsync('strava_access_token')
             if (token) {
+                // Attempt to revoke the token via Strava API
                 await axios.post(discovery.revocationEndpoint, {}, {
                     headers: { Authorization: `Bearer ${token}` },
                 })
+                logger.info('Successfully revoked Strava token.')
             }
+        } catch (error) {
+            logger.error('Error disconnecting from Strava:', error)
 
+            // Inform the user about the revocation failure
+            Alert.alert(
+                'Disconnection Warning',
+                'Failed to notify Strava about disconnection. Local data will still be cleared.'
+            )
+        }
+
+        // Clear local tokens regardless of revocation success
+        try {
             await SecureStore.deleteItemAsync('strava_access_token')
             await SecureStore.deleteItemAsync('strava_refresh_token')
             await SecureStore.deleteItemAsync('strava_expires_at')
 
             setIsConnected(false)
+            Alert.alert('Disconnected', 'You have been successfully disconnected from Strava.')
         } catch (error) {
-            logger.error('Error disconnecting from Strava:', error)
-            Alert.alert('Error', 'Failed to disconnect from Strava.')
+            logger.error('Error clearing local tokens:', error)
+            Alert.alert(
+                'Error',
+                'Failed to clear local Strava data. Please try again or restart the app.'
+            )
         }
-    }
+}
 
     return { request, promptAsync, isConnected, isLoading, disconnect }
 }

@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
 
-import handleFilePick from '../services/fileService'
+import pickAndConvertFileToGpx from '../services/fileService'
 import { useStravaAuthRequest } from '../services/authService'
 import { uploadToStrava } from '../services/stravaService'
 import MapModal from './MapModal'
@@ -16,7 +16,7 @@ export default function Home() {
     async function handleFileSelect() {
         try {
 
-            const fileUri = await handleFilePick()
+            const fileUri = await pickAndConvertFileToGpx()
 
             if (fileUri) {
                 setGpxFileUri(fileUri)
@@ -44,7 +44,7 @@ export default function Home() {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.text}>Choose activities to upload</Text>
+            <Text style={styles.text}>Choose activity to upload</Text>
 
             <TouchableOpacity
                 style={isConnected ? styles.browseButton : styles.opaqueBrowseButton}

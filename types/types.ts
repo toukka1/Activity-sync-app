@@ -1,3 +1,5 @@
+import { LatLng } from 'react-native-maps'
+
 export interface DetailData {
     timeStamp: number
     elevation: number
@@ -33,6 +35,11 @@ export interface FormDataFile {
     uri: string
     name: string
     type: string
+}
+
+export interface Waypoint extends LatLng {
+    heartRate: number
+    cadence: number
 }
 
 export type LogParams = any[]

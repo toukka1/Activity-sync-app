@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { View, Text, Button, Modal, TextInput, StyleSheet, TouchableOpacity } from 'react-native'
-import MapView, { Polyline, LatLng, PROVIDER_GOOGLE } from 'react-native-maps'
+import MapView, { Polyline, PROVIDER_GOOGLE } from 'react-native-maps'
+
 import { calculateTotalDistance, calculateBoundingBox, parseGPXFile } from '../utils/gpxUtils'
+import { Waypoint } from '../types/types'
 
 import logger from '../utils/logger'
 
@@ -13,10 +15,6 @@ interface MapModalProps {
     onConfirm: (activityName: string) => void
 }
 
-interface Waypoint extends LatLng {
-    heartRate: number
-    cadence: number
-}
 
 const MapModal: React.FC<MapModalProps> = ({ gpxFileUri, isVisible, onClose, onConfirm }) => {
     const [coordinates, setCoordinates] = useState<Waypoint[]>([])

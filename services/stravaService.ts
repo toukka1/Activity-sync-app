@@ -13,7 +13,7 @@ export async function uploadToStrava(fileUri: string, activityName: string): Pro
 
         const accessToken = await getAccessToken()
         if (!accessToken) {
-            throw new Error('Access token not found. Please log in to Strava.')
+            throw new Error('Access token not found.')
         }
 
         const file: FormDataFile = {
