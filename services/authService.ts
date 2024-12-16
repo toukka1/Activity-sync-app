@@ -8,7 +8,7 @@ import logger from '../utils/logger'
 
 const discovery = {
     authorizationEndpoint: 'https://www.strava.com/oauth/mobile/authorize',
-    tokenEndpoint: 'https://www.strava.com/oauth/token',
+    tokenEndpoint: 'https://activity-sync-app-backend.fly.dev',
     revocationEndpoint: 'https://www.strava.com/oauth/deauthorize',
 }
 
@@ -39,11 +39,8 @@ export async function refreshAccessToken() {
             throw new Error('No refresh token found')
         }
 
-        const res = await axios.post(discovery.tokenEndpoint, {
-            client_id: process.env.EXPO_PUBLIC_STRAVA_CLIENT_ID,
-            client_secret: process.env.EXPO_PUBLIC_STRAVA_CLIENT_SECRET,
+        const res = await axios.post(`${discovery.tokenEndpoint}/refresh-token`, {
             refresh_token: refreshToken,
-            grant_type: 'refresh_token',
         })
 
         await storeTokens(res.data)
@@ -110,11 +107,8 @@ export function useStravaAuthRequest(): StravaAuthHook {
                 const { code } = response.params
 
                 try {
-                    const res = await axios.post(discovery.tokenEndpoint, {
-                        client_id: process.env.EXPO_PUBLIC_STRAVA_CLIENT_ID,
-                        client_secret: process.env.EXPO_PUBLIC_STRAVA_CLIENT_SECRET,
+                    const res = await axios.post(`${discovery.tokenEndpoint}/exchange-token`, {
                         code,
-                        grant_type: 'authorization_code',
                     })
 
                     storeTokens(res.data)
