@@ -17,7 +17,7 @@ const redirectUri = __DEV__
     ? makeRedirectUri()
     : 'myapp://myapp.com'
 
-interface StravaAuthHook {
+type StravaAuthHook = {
     request: AuthRequest | null
     promptAsync: () => Promise<AuthSessionResult>
     isConnected: boolean

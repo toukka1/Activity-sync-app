@@ -1,25 +1,25 @@
-import React, { useState } from 'react'
+import React, { act, useState } from 'react'
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
 
-import pickAndConvertFileToGpx from '../services/fileService'
+import pickAndParseFile from '../services/fileService'
 import { useStravaAuthRequest } from '../services/authService'
-import { uploadToStrava } from '../services/stravaService'
 import MapModal from './MapModal'
+import { ActivityData } from '../types/types'
 
 import logger from '../utils/logger'
 
 export default function Home() {
     const { isConnected, promptAsync, isLoading, disconnect } = useStravaAuthRequest()
     const [isModalVisible, setModalVisible] = useState(false)
-    const [gpxFileUri, setGpxFileUri] = useState('')
+    const [activityData, setActivityData] = useState<ActivityData | null>(null)
 
     async function handleFileSelect() {
         try {
 
-            const fileUri = await pickAndConvertFileToGpx()
+            const activityData = await pickAndParseFile()
 
-            if (fileUri) {
-                setGpxFileUri(fileUri)
+            if (activityData) {
+                setActivityData(activityData)
                 setModalVisible(true)
             }
         } catch (error) {
@@ -27,15 +27,13 @@ export default function Home() {
         }
     }
 
-    function handleConfirmUpload(activityName: string) {
-        logger.info(`Uploading ${activityName} to Strava`)
-        uploadToStrava(gpxFileUri, activityName)
+    function handleConfirmUpload() {
         setModalVisible(false)
     }
 
     function handleCloseModal() {
         setModalVisible(false)
-        setGpxFileUri('')
+        setActivityData(null)
     }
 
     async function handleConnect() {
@@ -65,11 +63,11 @@ export default function Home() {
                 </Text>
             </TouchableOpacity>
 
-            {gpxFileUri && (
+            {activityData && (
                 <MapModal
                     isVisible={isModalVisible}
                     onClose={handleCloseModal}
-                    gpxFileUri={gpxFileUri}
+                    activityData={activityData}
                     onConfirm={handleConfirmUpload}
                 />
             )}

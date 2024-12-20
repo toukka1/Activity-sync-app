@@ -2,24 +2,23 @@ import * as DocumentPicker from 'expo-document-picker'
 import * as FileSystem from 'expo-file-system'
 import { Alert } from 'react-native'
 
-import { FileData } from '../types/types'
-import convertOPHealthFileToGPX from '../utils/gpxUtils'
+import { FileData, ActivityData } from '../types/types'
+import parseOPHealthFile from '../utils/activityUtils'
 
 import logger from '../utils/logger'
 
-export default async function pickAndConvertFileToGPX(): Promise<string> {
+export default async function pickAndParseFile(): Promise<ActivityData | null> {
     try {
         const uri: string = await pickFile()
         const fileContent: string = await readFileContent(uri)
         const fileContentJson: FileData = JSON.parse(fileContent)
-        const gpx: string = await convertOPHealthFileToGPX(fileContentJson)
-        const gpxFileUri: string = await writeFile(gpx)
+        const activityData: ActivityData = await parseOPHealthFile(fileContentJson)
 
-        return gpxFileUri
+        return activityData
     } catch(error) {
         logger.error('An error occurred during file handling:', error)
         Alert.alert('Unexpected Error', 'An error occurred during file processing. Please check the file and try again.')
-        return ''
+        return null
     }
 }
 
@@ -43,7 +42,7 @@ async function readFileContent(uri: string): Promise<string> {
     return fileContent
 }
 
-async function writeFile(content: string): Promise<string> {
+export async function writeGpxFile(content: string): Promise<string> {
     try {
         const uri: string = `${FileSystem.documentDirectory}gpxToUpload.gpx`
         await FileSystem.writeAsStringAsync(uri, content)

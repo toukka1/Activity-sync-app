@@ -1,62 +1,75 @@
 import React, { useEffect, useState } from 'react'
 import { View, Text, Button, Modal, TextInput, StyleSheet, TouchableOpacity } from 'react-native'
-import MapView, { Polyline, PROVIDER_GOOGLE } from 'react-native-maps'
+import MapView, { Polyline, Marker, PROVIDER_GOOGLE } from 'react-native-maps'
 
-import { calculateTotalDistance, calculateBoundingBox, parseGPXFile } from '../utils/gpxUtils'
-import { Waypoint } from '../types/types'
+import { calculateTotalDistance, calculateBoundingBox, updateActivityWithNewStartPoint, convertActivityToGpx } from '../utils/activityUtils'
+import { writeGpxFile } from '../services/fileService'
+import { uploadToStrava } from '../services/stravaService'
+import { Waypoint, ActivityData } from '../types/types'
 
 import logger from '../utils/logger'
 
 
-interface MapModalProps {
-    gpxFileUri: string | null
+type MapModalProps = {
+    activityData: ActivityData
     isVisible: boolean
     onClose: () => void
-    onConfirm: (activityName: string) => void
+    onConfirm: () => void
 }
 
-
-const MapModal: React.FC<MapModalProps> = ({ gpxFileUri, isVisible, onClose, onConfirm }) => {
-    const [coordinates, setCoordinates] = useState<Waypoint[]>([])
+const MapModal: React.FC<MapModalProps> = ({ activityData, isVisible, onClose, onConfirm }) => {
+    const [waypoints, setWaypoints] = useState<Waypoint[]>([])
     const [activityName, setActivityName] = useState<string>('Run')
     const [distance, setDistance] = useState<number>(0)
     const [avgHeartRate, setAvgHeartRate] = useState<number>(0)
     const [cadence, setCadence] = useState<number>(0)
+    const [startPoint, setStartPoint] = useState<{ latitude: number; longitude: number } | null>(null)
 
     useEffect(() => {
-        if (gpxFileUri) {
-            loadGPXData()
+        if (activityData) {
+            loadData()
         }
-    }, [gpxFileUri])
+    }, [activityData])
 
-    async function loadGPXData() {
-        const waypoints = await parseGPXFile(gpxFileUri)
+    async function loadData() {
+        const totalDistance = calculateTotalDistance(activityData.waypoints)
 
-        const totalDistance = calculateTotalDistance(waypoints)
-        const totalHeartRate = waypoints.reduce((sum, wp) => sum + (wp.heartRate || 0), 0)
-        const totalCadence = waypoints.reduce((sum, wp) => sum + (wp.cadence || 0), 0)
-        const nonZeroHeartRateWaypoints = waypoints.filter(wp => wp.heartRate > 0).length
-        const nonZeroCadenceWaypoints = waypoints.filter(wp => wp.cadence > 0).length
-
-        const avgHeartRate = nonZeroHeartRateWaypoints > 0 ? totalHeartRate / nonZeroHeartRateWaypoints : 0
-        const avgCadence = nonZeroCadenceWaypoints > 0 ? totalCadence / nonZeroCadenceWaypoints : 0
-
-        setCoordinates(waypoints)
+        setWaypoints(activityData.waypoints)
         setDistance(totalDistance)
-        setAvgHeartRate(avgHeartRate)
-        setCadence(avgCadence * 2)
+        setAvgHeartRate(activityData.avgHeartRate)
+        setCadence(activityData.avgFrequency)
+        setStartPoint({
+            latitude: activityData.waypoints[0].latitude,
+            longitude: activityData.waypoints[0].longitude,
+        })
     }
 
-    const handleConfirm = () => {
-        onConfirm(activityName)
+    async function handleConfirm() {
+        logger.info(`Uploading ${activityName} to Strava`)
+
+        activityData.waypoints = waypoints // Use the route confirmed by the user
+        const gpxData: string = convertActivityToGpx(activityData)
+        const gpxFileUri: string = await writeGpxFile(gpxData)
+
+        uploadToStrava(gpxFileUri, activityName)
+        onConfirm()
         onClose()
     }
 
-    const validCoordinates = coordinates.filter(
-        (point) => point.latitude !== 0 && point.longitude !== 0
-    )
+    async function recalculateRoute(newStartPoint: { latitude: number; longitude: number }) {
+        try {
+            const updatedWaypoints = await updateActivityWithNewStartPoint(activityData, newStartPoint)
+            const totalDistance = calculateTotalDistance(updatedWaypoints)
 
-    const boundingBox = validCoordinates.length > 1 ? calculateBoundingBox(validCoordinates) : null
+            setWaypoints(updatedWaypoints)
+            setDistance(totalDistance)
+            setStartPoint(newStartPoint)
+        } catch (error) {
+            logger.error('Failed to recalculate route:', error)
+        }
+    }
+
+    const boundingBox = calculateBoundingBox(waypoints)
 
     return (
         <Modal
@@ -75,18 +88,29 @@ const MapModal: React.FC<MapModalProps> = ({ gpxFileUri, isVisible, onClose, onC
                     />
 
                     {/* Map displaying the GPX route */}
-                    {validCoordinates.length > 0 && (
+                    {activityData && (
                         <MapView
                             provider={PROVIDER_GOOGLE}
                             style={styles.map}
-                            initialRegion={{
-                                latitude: boundingBox ? boundingBox.centerLatitude : validCoordinates[0].latitude,
-                                longitude: boundingBox ? boundingBox.centerLongitude : validCoordinates[0].longitude,
-                                latitudeDelta: boundingBox ? boundingBox.latitudeDelta : 0.01,
-                                longitudeDelta: boundingBox ? boundingBox.longitudeDelta : 0.01,
+                            region={{
+                                latitude: boundingBox.centerLatitude,
+                                longitude: boundingBox.centerLongitude,
+                                latitudeDelta: boundingBox.latitudeDelta,
+                                longitudeDelta: boundingBox.longitudeDelta,
                             }}
+                            toolbarEnabled={false}
                         >
-                            <Polyline coordinates={validCoordinates} strokeWidth={3} strokeColor="blue" />
+                            <Polyline coordinates={waypoints} strokeWidth={3} strokeColor="blue" />
+                            {startPoint && (
+                                <Marker
+                                    draggable
+                                    coordinate={startPoint}
+                                    onDragEnd={(e) =>
+                                        recalculateRoute(e.nativeEvent.coordinate)
+                                    }
+                                    pinColor="red"
+                                />
+                            )}
                         </MapView>
                     )}
 
@@ -131,7 +155,7 @@ const styles = StyleSheet.create({
     },
     map: {
         width: '100%',
-        height: 200,
+        height: 300,
         marginBottom: 20,
     },
     infoText: {
