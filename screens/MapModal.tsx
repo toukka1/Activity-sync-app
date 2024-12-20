@@ -24,6 +24,17 @@ const MapModal: React.FC<MapModalProps> = ({ activityData, isVisible, onClose, o
     const [avgHeartRate, setAvgHeartRate] = useState<number>(0)
     const [cadence, setCadence] = useState<number>(0)
     const [startPoint, setStartPoint] = useState<{ latitude: number; longitude: number } | null>(null)
+    const [region, setRegion] = useState<{
+        latitude: number
+        longitude: number
+        latitudeDelta: number
+        longitudeDelta: number
+    }>({
+        latitude: 0,
+        longitude: 0,
+        latitudeDelta: 0.1,
+        longitudeDelta: 0.1,
+    })
 
     useEffect(() => {
         if (activityData) {
@@ -41,6 +52,14 @@ const MapModal: React.FC<MapModalProps> = ({ activityData, isVisible, onClose, o
         setStartPoint({
             latitude: activityData.waypoints[0].latitude,
             longitude: activityData.waypoints[0].longitude,
+        })
+
+        const boundingBox = calculateBoundingBox(activityData.waypoints)
+        setRegion({
+            latitude: boundingBox.centerLatitude,
+            longitude: boundingBox.centerLongitude,
+            latitudeDelta: boundingBox.latitudeDelta,
+            longitudeDelta: boundingBox.longitudeDelta,
         })
     }
 
@@ -69,8 +88,6 @@ const MapModal: React.FC<MapModalProps> = ({ activityData, isVisible, onClose, o
         }
     }
 
-    const boundingBox = calculateBoundingBox(waypoints)
-
     return (
         <Modal
             visible={isVisible}
@@ -92,12 +109,7 @@ const MapModal: React.FC<MapModalProps> = ({ activityData, isVisible, onClose, o
                         <MapView
                             provider={PROVIDER_GOOGLE}
                             style={styles.map}
-                            region={{
-                                latitude: boundingBox.centerLatitude,
-                                longitude: boundingBox.centerLongitude,
-                                latitudeDelta: boundingBox.latitudeDelta,
-                                longitudeDelta: boundingBox.longitudeDelta,
-                            }}
+                            region={region}
                             toolbarEnabled={false}
                         >
                             <Polyline coordinates={waypoints} strokeWidth={3} strokeColor="blue" />
