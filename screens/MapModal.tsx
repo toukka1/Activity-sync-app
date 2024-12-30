@@ -14,10 +14,9 @@ type MapModalProps = {
     activityData: ActivityData
     isVisible: boolean
     onClose: () => void
-    onConfirm: () => void
 }
 
-const MapModal: React.FC<MapModalProps> = ({ activityData, isVisible, onClose, onConfirm }) => {
+const MapModal: React.FC<MapModalProps> = ({ activityData, isVisible, onClose }) => {
     const [waypoints, setWaypoints] = useState<Waypoint[]>([])
     const [activityName, setActivityName] = useState<string>('Run')
     const [distance, setDistance] = useState<number>(0)
@@ -71,7 +70,6 @@ const MapModal: React.FC<MapModalProps> = ({ activityData, isVisible, onClose, o
         const gpxFileUri: string = await writeGpxFile(gpxData)
 
         uploadToStrava(gpxFileUri, activityName)
-        onConfirm()
         onClose()
     }
 

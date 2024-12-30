@@ -1,4 +1,4 @@
-import React, { act, useState } from 'react'
+import React, { useState } from 'react'
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
 
 import pickAndParseFile from '../services/fileService'
@@ -25,10 +25,6 @@ export default function Home() {
         } catch (error) {
             logger.error('Error selecting file:', error)
         }
-    }
-
-    function handleConfirmUpload() {
-        setModalVisible(false)
     }
 
     function handleCloseModal() {
@@ -68,7 +64,6 @@ export default function Home() {
                     isVisible={isModalVisible}
                     onClose={handleCloseModal}
                     activityData={activityData}
-                    onConfirm={handleConfirmUpload}
                 />
             )}
         </View>

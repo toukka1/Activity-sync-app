@@ -83,17 +83,38 @@ export async function updateActivityWithNewStartPoint(activityData: ActivityData
             activityData.startPoint.latitude
         )
 
-        // Split the elapsed time during no gps data evenly for the new calculated route
-        const interval = (activityData.startTimeGps - activityData.startTime) / route.length
+        // Calculate distances between consecutive points
+        const distances = route.map((point, index) => {
+            if (index === 0) return 0
+            return calculateDistance(
+                { latitude: route[index - 1][1], longitude: route[index - 1][0] },
+                { latitude: point[1], longitude: point[0] }
+            )
+        })
 
-        const newWaypoints: Waypoint[] = route.map((point, index) => ({
-            latitude: point[1],
-            longitude: point[0],
-            timeStamp: new Date((activityData.startTime + interval * index)),
-            elevation: 0,
-            heartRate: activityData.avgHeartRateDuringMissingGps,
-            cadence: activityData.avgFrequency / 2,
-        }))
+        const totalDistance = distances.reduce((sum, distance) => sum + distance, 0)
+        const timeToCoverDistance = (totalDistance * activityData.avgSpeed / 1000)
+        const newStartTime = activityData.startTimeGps - timeToCoverDistance * 1000
+
+        // Use avg pace to calculate the time intervals
+        const timeIntervals = distances.map(distance =>
+            distance * activityData.avgSpeed / 1000
+        )
+
+        let accumulatedTime = newStartTime
+        const newWaypoints: Waypoint[] = route.map((point, index) => {
+            accumulatedTime += timeIntervals[index] * 1000
+            const timeStamp = new Date(accumulatedTime)
+
+            return {
+                latitude: point[1],
+                longitude: point[0],
+                timeStamp,
+                elevation: 0,
+                heartRate: activityData.avgHeartRateDuringMissingGps,
+                cadence: activityData.avgFrequency / 2,
+            }
+        })
 
         const updatedWaypoints = [...newWaypoints, ...activityData.waypoints]
 
@@ -107,7 +128,6 @@ export async function updateActivityWithNewStartPoint(activityData: ActivityData
 
 export function convertActivityToGpx(activity: ActivityData): string {
     const trackPoints = activity.waypoints.map((waypoint: Waypoint): InstanceType<typeof Point> => {
-        
         let trackPoint: InstanceType<typeof Point>
 
         const extension: TrackPointExtension = {
