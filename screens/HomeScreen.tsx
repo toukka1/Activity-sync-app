@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
+import { StyleSheet, Text, View, TouchableOpacity, Switch } from 'react-native'
 
-import pickAndParseFile from '../services/fileService'
+import { handleActivityUpload } from '../services/activityService'
 import { useStravaAuthRequest } from '../services/authService'
 import MapModal from './MapModal'
 import { ActivityData } from '../types/types'
@@ -12,19 +12,25 @@ export default function Home() {
     const { isConnected, promptAsync, isLoading, disconnect } = useStravaAuthRequest()
     const [isModalVisible, setModalVisible] = useState(false)
     const [activityData, setActivityData] = useState<ActivityData | null>(null)
+    const [previewEnabled, setPreviewEnabled] = useState(true)
 
-    async function handleFileSelect() {
-        try {
+    function handleTogglePreview() {
+        setPreviewEnabled((prev) => !prev)
+    }
 
-            const activityData = await pickAndParseFile()
+    async function handleFileUpload() {
+        const { activityData } = await handleActivityUpload(previewEnabled)
 
-            if (activityData) {
-                setActivityData(activityData)
-                setModalVisible(true)
-            }
-        } catch (error) {
-            logger.error('Error selecting file:', error)
+        if (previewEnabled) {
+            setActivityData(activityData)
+            setModalVisible(true)
+        } else {
+            logger.info('GPX file uploaded directly.')
         }
+    }
+
+    async function handleUpdatedActivityUpload(updatedData: ActivityData) {
+        await handleActivityUpload(false, updatedData)
     }
 
     function handleCloseModal() {
@@ -38,11 +44,15 @@ export default function Home() {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.text}>Choose activity to upload</Text>
+            <View style={styles.row}>
+                <Text>Enable Map Preview</Text>
+                <Switch value={previewEnabled} onValueChange={handleTogglePreview} />
+            </View>
+            <Text style={styles.text}>Choose an activity to upload</Text>
 
             <TouchableOpacity
                 style={isConnected ? styles.browseButton : styles.opaqueBrowseButton}
-                onPress={handleFileSelect}
+                onPress={handleFileUpload}
                 disabled={!isConnected}
             >
                 <Text style={styles.buttonText}>Browse</Text>
@@ -61,9 +71,10 @@ export default function Home() {
 
             {activityData && (
                 <MapModal
-                    isVisible={isModalVisible}
-                    onClose={handleCloseModal}
                     activityData={activityData}
+                    isVisible={isModalVisible}
+                    onConfirm={handleUpdatedActivityUpload}
+                    onClose={handleCloseModal}
                 />
             )}
         </View>
@@ -111,5 +122,11 @@ const styles = StyleSheet.create({
         padding: 10,
         borderRadius: 5,
         marginTop: 10,
+    },
+    row: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 16,
     },
 })

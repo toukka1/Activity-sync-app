@@ -8,7 +8,7 @@ import logger from '../utils/logger'
 
 const STRAVA_UPLOAD_URL = 'https://www.strava.com/api/v3/uploads'
 
-export async function uploadToStrava(fileUri: string, activityName: string): Promise<void> {
+export async function uploadToStrava(fileUri: string): Promise<void> {
     try {
 
         const accessToken = await getAccessToken()
@@ -18,7 +18,7 @@ export async function uploadToStrava(fileUri: string, activityName: string): Pro
 
         const file: FormDataFile = {
             uri: fileUri,
-            name: activityName,
+            name: 'Activity',
             type: 'application/gpx+xml',
         }
 

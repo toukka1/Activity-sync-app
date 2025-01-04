@@ -7,7 +7,7 @@ import parseOPHealthFile from '../utils/activityUtils'
 
 import logger from '../utils/logger'
 
-export default async function pickAndParseFile(): Promise<ActivityData | null> {
+export async function pickAndParseFile(): Promise<ActivityData | null> {
     try {
         const uri: string = await pickFile()
         const fileContent: string = await readFileContent(uri)

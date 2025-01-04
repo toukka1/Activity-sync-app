@@ -2,9 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { View, Text, Button, Modal, TextInput, StyleSheet, TouchableOpacity } from 'react-native'
 import MapView, { Polyline, Marker, PROVIDER_GOOGLE } from 'react-native-maps'
 
-import { calculateTotalDistance, calculateBoundingBox, updateActivityWithNewStartPoint, convertActivityToGpx } from '../utils/activityUtils'
-import { writeGpxFile } from '../services/fileService'
-import { uploadToStrava } from '../services/stravaService'
+import { calculateTotalDistance, calculateBoundingBox, updateActivityWithNewStartPoint } from '../utils/activityUtils'
 import { Waypoint, ActivityData } from '../types/types'
 
 import logger from '../utils/logger'
@@ -13,12 +11,12 @@ import logger from '../utils/logger'
 type MapModalProps = {
     activityData: ActivityData
     isVisible: boolean
+    onConfirm: (updatedData: ActivityData) => void
     onClose: () => void
 }
 
-const MapModal: React.FC<MapModalProps> = ({ activityData, isVisible, onClose }) => {
+const MapModal: React.FC<MapModalProps> = ({ activityData, isVisible, onConfirm, onClose }) => {
     const [waypoints, setWaypoints] = useState<Waypoint[]>([])
-    const [activityName, setActivityName] = useState<string>('Run')
     const [distance, setDistance] = useState<number>(0)
     const [avgHeartRate, setAvgHeartRate] = useState<number>(0)
     const [cadence, setCadence] = useState<number>(0)
@@ -63,13 +61,8 @@ const MapModal: React.FC<MapModalProps> = ({ activityData, isVisible, onClose })
     }
 
     async function handleConfirm() {
-        logger.info(`Uploading ${activityName} to Strava`)
-
         activityData.waypoints = waypoints // Use the route confirmed by the user
-        const gpxData: string = convertActivityToGpx(activityData)
-        const gpxFileUri: string = await writeGpxFile(gpxData)
-
-        uploadToStrava(gpxFileUri, activityName)
+        onConfirm(activityData)
         onClose()
     }
 
@@ -94,13 +87,8 @@ const MapModal: React.FC<MapModalProps> = ({ activityData, isVisible, onClose })
         >
             <View style={styles.modalOverlay}>
                 <View style={styles.modalContent}>
-                    {/* Editable Activity Name */}
-                    <TextInput
-                        style={styles.input}
-                        value={activityName}
-                        onChangeText={setActivityName}
-                        placeholder="Activity Name"
-                    />
+                    {/* Header */}
+                    <Text style={styles.infoText}>Activity details:</Text>
 
                     {/* Map displaying the GPX route */}
                     {activityData && (
