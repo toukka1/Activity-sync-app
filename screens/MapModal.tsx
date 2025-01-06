@@ -35,7 +35,7 @@ const MapModal: React.FC<MapModalProps> = ({ activityData, isVisible, onConfirm,
     })
 
     useEffect(() => {
-        if (activityData) {
+        if (activityData.waypoints) {
             loadData()
         }
     }, [activityData])

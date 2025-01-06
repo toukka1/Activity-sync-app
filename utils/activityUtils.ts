@@ -158,6 +158,10 @@ export function convertActivityToGpx(activity: ActivityData): string {
 }
 
 export function calculateTotalDistance(points: Waypoint[]): number {
+    if (!Array.isArray(points) || points.length === 0) {
+        return 0
+    }
+
     let totalDistance = 0
     const validPoints = points.filter(point => point.latitude !== 0 && point.longitude !== 0)
 
