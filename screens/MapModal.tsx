@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { View, Text, Button, Modal, TextInput, StyleSheet, TouchableOpacity } from 'react-native'
+import { View, Text, Button, Modal, StyleSheet, TouchableOpacity } from 'react-native'
 import MapView, { Polyline, Marker, PROVIDER_GOOGLE } from 'react-native-maps'
 
 import { calculateTotalDistance, calculateBoundingBox, updateActivityWithNewStartPoint } from '../utils/activityUtils'
@@ -21,6 +21,7 @@ const MapModal: React.FC<MapModalProps> = ({ activityData, isVisible, onConfirm,
     const [avgHeartRate, setAvgHeartRate] = useState<number>(0)
     const [cadence, setCadence] = useState<number>(0)
     const [startPoint, setStartPoint] = useState<{ latitude: number; longitude: number } | null>(null)
+    const [resetStartPointActive, setResetStartPointActive] = useState<boolean>(false)
     const [region, setRegion] = useState<{
         latitude: number
         longitude: number
@@ -46,10 +47,7 @@ const MapModal: React.FC<MapModalProps> = ({ activityData, isVisible, onConfirm,
         setDistance(totalDistance)
         setAvgHeartRate(activityData.avgHeartRate)
         setCadence(activityData.avgFrequency)
-        setStartPoint({
-            latitude: activityData.waypoints[0].latitude,
-            longitude: activityData.waypoints[0].longitude,
-        })
+        setStartPoint(activityData.startPoint)
 
         const boundingBox = calculateBoundingBox(activityData.waypoints)
         setRegion({
@@ -58,6 +56,15 @@ const MapModal: React.FC<MapModalProps> = ({ activityData, isVisible, onConfirm,
             latitudeDelta: boundingBox.latitudeDelta,
             longitudeDelta: boundingBox.longitudeDelta,
         })
+    }
+
+    async function resetStartingPoint() {
+        const totalDistance = calculateTotalDistance(activityData.waypoints)
+
+        setWaypoints(activityData.waypoints)
+        setDistance(totalDistance)
+        setStartPoint(activityData.startPoint)
+        setResetStartPointActive(false)
     }
 
     async function handleConfirm() {
@@ -74,6 +81,7 @@ const MapModal: React.FC<MapModalProps> = ({ activityData, isVisible, onConfirm,
             setWaypoints(updatedWaypoints)
             setDistance(totalDistance)
             setStartPoint(newStartPoint)
+            setResetStartPointActive(true)
         } catch (error) {
             logger.error('Failed to recalculate route:', error)
         }
@@ -112,12 +120,16 @@ const MapModal: React.FC<MapModalProps> = ({ activityData, isVisible, onConfirm,
                         </MapView>
                     )}
 
+                    {/* Reset Button */}
+                    <Button title="Reset starting point"
+                        onPress={resetStartingPoint}
+                        disabled={!resetStartPointActive}
+                    />
+
                     {/* Activity Details */}
                     <Text style={styles.infoText}>Distance: {(distance / 1000).toFixed(2)} km</Text>
                     <Text style={styles.infoText}>Avg Heart Rate: {avgHeartRate.toFixed(0)} bpm</Text>
                     <Text style={styles.infoText}>Cadence: {cadence.toFixed(0)} spm</Text>
-
-                    
 
                     {/* Confirm and Cancel Buttons */}
                     <View style={styles.buttonRow}>
