@@ -161,7 +161,7 @@ export function useStravaAuthRequest(): StravaAuthHook {
                 'Failed to clear local Strava data. Please try again or restart the app.'
             )
         }
-}
+    }
 
     return { request, promptAsync, isConnected, isLoading, disconnect }
 }

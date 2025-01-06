@@ -21,7 +21,7 @@ function resolveSportType (numericSportType: number) {
 
 export default async function parseOPHealthFile(file: FileData): Promise<ActivityData> {
 
-    if (!file.gpsData || file.gpsData.length === 0 || !file.detailData || file.detailData.length == 0) {
+    if (!file.gpsData || file.gpsData.length === 0 || !file.detailData || file.detailData.length === 0) {
         throw new Error('GPS or detail data missing in the provided file.')
     }
 
@@ -29,27 +29,27 @@ export default async function parseOPHealthFile(file: FileData): Promise<Activit
     let missingGpsHeartRateCount = 0
 
     const waypoints: Waypoint[] = file.detailData
-    .flatMap((data: DetailData): Waypoint[] => {
-        const point = file.gpsData.find(
-            (gpsPoint: GpsData) => Math.abs(gpsPoint.timeStamp - data.timeStamp) <= 2
-        )
+        .flatMap((data: DetailData): Waypoint[] => {
+            const point = file.gpsData.find(
+                (gpsPoint: GpsData) => Math.abs(gpsPoint.timeStamp - data.timeStamp) <= 2
+            )
 
-        if (!point) {
-            // Extract the heart rate for the duration where gps data isn't available
-            missingGpsHeartRateSum += data.heartRate !== 0 ? data.heartRate : file.avgHeartRate
-            missingGpsHeartRateCount++
-            return []
-        }
+            if (!point) {
+                // Extract the heart rate for the duration where gps data isn't available
+                missingGpsHeartRateSum += data.heartRate !== 0 ? data.heartRate : file.avgHeartRate
+                missingGpsHeartRateCount++
+                return []
+            }
 
-        return [{
-            latitude: point.latitude,
-            longitude: point.longitude,
-            timeStamp: new Date(data.timeStamp * 1000),
-            elevation: data.elevation / 10,
-            heartRate: data.heartRate !== 0 ? data.heartRate : file.avgHeartRate,
-            cadence: data.frequency / 2,
-        }]
-    })
+            return [{
+                latitude: point.latitude,
+                longitude: point.longitude,
+                timeStamp: new Date(data.timeStamp * 1000),
+                elevation: data.elevation / 10,
+                heartRate: data.heartRate !== 0 ? data.heartRate : file.avgHeartRate,
+                cadence: data.frequency / 2,
+            }]
+        })
 
     const avgHeartRateDuringMissingGps = missingGpsHeartRateCount > 0
         ? missingGpsHeartRateSum / missingGpsHeartRateCount
@@ -63,7 +63,7 @@ export default async function parseOPHealthFile(file: FileData): Promise<Activit
         avgHeartRate: file.avgHeartRate,
         avgFrequency: file.avgFrequency,
         waypoints: waypoints,
-        startPoint: {latitude: file.gpsData[0].latitude, longitude: file.gpsData[0].longitude},
+        startPoint: { latitude: file.gpsData[0].latitude, longitude: file.gpsData[0].longitude },
         startTimeGps: file.gpsData[0].timeStamp * 1000,
         avgHeartRateDuringMissingGps: avgHeartRateDuringMissingGps
     }
@@ -75,7 +75,7 @@ export async function updateActivityWithNewStartPoint(activityData: ActivityData
     newStartPoint: { latitude: number; longitude: number })
 : Promise<Waypoint[]> {
     try {
-        // Call Mapbox Directions API to get the route between the newStartPoint and original start point
+    // Call Mapbox Directions API to get the route between the newStartPoint and original start point
         const route = await getDirections(
             newStartPoint.longitude,
             newStartPoint.latitude,
@@ -119,7 +119,7 @@ export async function updateActivityWithNewStartPoint(activityData: ActivityData
         const updatedWaypoints = [...newWaypoints, ...activityData.waypoints]
 
         return updatedWaypoints
-        
+
     } catch (error) {
         logger.error('Failed to update activity with new starting point:', error)
         throw error
