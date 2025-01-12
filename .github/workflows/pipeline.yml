@@ -1,4 +1,4 @@
-name: Android App APK Build
+name: Build pipeline
 
 on:
   push:
@@ -36,6 +36,12 @@ jobs:
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
+
+      - name: Run lint
+        run: yarn run lint
+
+      - name: Run tests
+        run: yarn run test
 
       - name: Pull EAS environment variables
         run: eas env:pull preview
