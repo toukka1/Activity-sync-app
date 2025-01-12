@@ -1,6 +1,8 @@
 import { StyleSheet, View, StatusBar } from 'react-native'
 import HomeScreen from './screens/HomeScreen'
 import Banner from './components/Banner'
+import { handleActivityUpload } from './services/activityService'
+import { useStravaAuthRequest } from './services/authService'
 
 export default function App() {
 
@@ -8,7 +10,10 @@ export default function App() {
         <View style={styles.container}>
             <StatusBar backgroundColor="#007AFF" barStyle="light-content"/>
             <Banner />
-            <HomeScreen />
+            <HomeScreen
+                activityService={handleActivityUpload}
+                authService={useStravaAuthRequest}
+            />
         </View>
     )
 }

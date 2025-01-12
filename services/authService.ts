@@ -1,8 +1,10 @@
-import { makeRedirectUri, useAuthRequest, AuthSessionResult, AuthRequest } from 'expo-auth-session'
+import { makeRedirectUri, useAuthRequest } from 'expo-auth-session'
 import * as SecureStore from 'expo-secure-store'
 import axios from 'axios'
 import { useEffect, useState } from 'react'
 import { Alert } from 'react-native'
+
+import { StravaAuthHook } from '../types/types'
 
 import logger from '../utils/logger'
 
@@ -16,14 +18,6 @@ const discovery = {
 const redirectUri = __DEV__
     ? makeRedirectUri()
     : 'myapp://myapp.com'
-
-type StravaAuthHook = {
-    request: AuthRequest | null
-    promptAsync: () => Promise<AuthSessionResult>
-    isConnected: boolean
-    isLoading: boolean
-    disconnect: () => Promise<void>
-}
 
 export async function storeTokens(data: any) {
     const { access_token, refresh_token, expires_at } = data

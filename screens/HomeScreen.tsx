@@ -1,25 +1,31 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { StyleSheet, Text, View, TouchableOpacity, Switch } from 'react-native'
 
-import { handleActivityUpload } from '../services/activityService'
-import { useStravaAuthRequest } from '../services/authService'
 import MapModal from './MapModal'
-import { ActivityData } from '../types/types'
+import { ActivityData, StravaAuthHook, HandleActivityUploadType } from '../types/types'
+import { useHomeScreenState } from '../hooks/useHomeScreenState'
 
 import logger from '../utils/logger'
 
-export default function Home() {
-    const { isConnected, promptAsync, isLoading, disconnect } = useStravaAuthRequest()
-    const [isModalVisible, setModalVisible] = useState(false)
-    const [activityData, setActivityData] = useState<ActivityData | null>(null)
-    const [previewEnabled, setPreviewEnabled] = useState(true)
+type HomeScreenProps = {
+    activityService: HandleActivityUploadType
+    authService: () => StravaAuthHook
+}
 
-    function handleTogglePreview() {
-        setPreviewEnabled((prev) => !prev)
-    }
+export default function HomeScreen({ activityService, authService }: HomeScreenProps) {
+    const {
+        isModalVisible,
+        setModalVisible,
+        activityData,
+        setActivityData,
+        previewEnabled,
+        togglePreview,
+        closeModal,
+    } = useHomeScreenState()
+    const { isConnected, promptAsync, isLoading, disconnect } = authService()
 
     async function handleFileUpload() {
-        const { activityData } = await handleActivityUpload(previewEnabled)
+        const { activityData } = await activityService(previewEnabled)
 
         if (previewEnabled) {
             setActivityData(activityData)
@@ -30,12 +36,7 @@ export default function Home() {
     }
 
     async function handleUpdatedActivityUpload(updatedData: ActivityData) {
-        await handleActivityUpload(false, updatedData)
-    }
-
-    function handleCloseModal() {
-        setModalVisible(false)
-        setActivityData(null)
+        await activityService(false, updatedData)
     }
 
     async function handleConnect() {
@@ -46,7 +47,7 @@ export default function Home() {
         <View style={styles.container}>
             <View style={styles.row}>
                 <Text>Enable Map Preview</Text>
-                <Switch value={previewEnabled} onValueChange={handleTogglePreview} />
+                <Switch value={previewEnabled} onValueChange={togglePreview} />
             </View>
             <Text style={styles.text}>Choose an activity to upload</Text>
 
@@ -74,7 +75,7 @@ export default function Home() {
                     activityData={activityData}
                     isVisible={isModalVisible}
                     onConfirm={handleUpdatedActivityUpload}
-                    onClose={handleCloseModal}
+                    onClose={closeModal}
                 />
             )}
         </View>

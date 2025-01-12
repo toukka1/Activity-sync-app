@@ -1,4 +1,5 @@
 import { LatLng } from 'react-native-maps'
+import { AuthSessionResult, AuthRequest } from 'expo-auth-session'
 
 export type DetailData = {
     timeStamp: number
@@ -58,5 +59,19 @@ export interface  Waypoint extends LatLng {
     heartRate: number
     cadence: number
 }
+
+export type StravaAuthHook = {
+    request: AuthRequest | null
+    promptAsync: () => Promise<AuthSessionResult>
+    isConnected: boolean
+    isLoading: boolean
+    disconnect: () => Promise<void>
+}
+
+export type HandleActivityUploadType = (
+    previewEnabled: boolean,
+    updatedActivityData?: ActivityData | null
+) => Promise<{ activityData: ActivityData, gpxFilePath: string }>
+
 
 export type LogParams = any[]
