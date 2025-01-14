@@ -9,15 +9,25 @@ import logger from '../utils/logger'
 
 export async function pickAndParseFile(): Promise<ActivityData | null> {
     try {
-        const uri: string = await pickFile()
-        const fileContent: string = await readFileContent(uri)
+        const uri = await pickFile()
+        const fileContent = await readFileContent(uri)
         const fileContentJson: FileData = JSON.parse(fileContent)
         const activityData: ActivityData = await parseOPHealthFile(fileContentJson)
 
         return activityData
-    } catch(error) {
+    } catch (error: any) {
         logger.error('An error occurred during file handling:', error)
-        Alert.alert('Unexpected Error', 'An error occurred during file processing. Please check the file and try again.')
+
+        if (error.message.includes('file selected')) {
+            Alert.alert('File Error', error.message)
+        } else if (error.message.includes('file is empty') || error.message.includes('reading file')) {
+            Alert.alert('Read Error', error.message)
+        } else if (error instanceof SyntaxError) {
+            Alert.alert('Parse Error', 'The file content is not valid JSON.')
+        } else {
+            Alert.alert('Unexpected Error', 'Something went wrong. Please try again.')
+        }
+
         return null
     }
 }
@@ -26,7 +36,6 @@ async function pickFile(): Promise<string> {
     const result = await DocumentPicker.getDocumentAsync({ type: 'text/plain' })
 
     if (result.canceled || !result.assets || !result.assets[0].uri) {
-        Alert.alert('File Selection Error', 'No file was selected. Please try again.')
         throw new Error('No file selected or picking was cancelled.')
     }
 
@@ -34,21 +43,24 @@ async function pickFile(): Promise<string> {
 }
 
 async function readFileContent(uri: string): Promise<string> {
-    const fileContent: string = await FileSystem.readAsStringAsync(uri)
-    if (!fileContent) {
-        Alert.alert('File Error', 'The selected file is empty or invalid.')
-        throw new Error('Failed to read the file')
+    try {
+        const fileContent = await FileSystem.readAsStringAsync(uri)
+        if (!fileContent) {
+            throw new Error('The selected file is empty or invalid.')
+        }
+        return fileContent
+    } catch {
+        throw new Error('Error reading file content.')
     }
-    return fileContent
 }
 
 export async function writeGpxFile(content: string): Promise<string> {
     try {
-        const uri: string = `${FileSystem.documentDirectory}gpxToUpload.gpx`
+        const uri = `${FileSystem.documentDirectory}gpxToUpload.gpx`
         await FileSystem.writeAsStringAsync(uri, content)
         logger.info('File written successfully!')
         return uri
-    } catch (error) {
-        throw new Error('Error writing file')
+    } catch {
+        throw new Error('Error writing file.')
     }
 }

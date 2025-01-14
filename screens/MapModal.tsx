@@ -15,7 +15,7 @@ type MapModalProps = {
     onClose: () => void
 }
 
-const MapModal: React.FC<MapModalProps> = ({ activityData, isVisible, onConfirm, onClose }) => {
+export default function MapModal({ activityData, isVisible, onConfirm, onClose }: MapModalProps) {
     const [waypoints, setWaypoints] = useState<Waypoint[]>([])
     const [distance, setDistance] = useState<number>(0)
     const [avgHeartRate, setAvgHeartRate] = useState<number>(0)
@@ -193,5 +193,3 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
 })
-
-export default MapModal

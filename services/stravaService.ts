@@ -11,7 +11,7 @@ const STRAVA_UPLOAD_URL = 'https://www.strava.com/api/v3/uploads'
 export async function uploadToStrava(fileUri: string): Promise<void> {
     try {
 
-        const accessToken = await getAccessToken()
+        const accessToken: string | null = await getAccessToken()
         if (!accessToken) {
             throw new Error('Access token not found.')
         }

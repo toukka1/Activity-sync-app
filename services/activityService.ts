@@ -10,8 +10,8 @@ export const handleActivityUpload = async (previewEnabled: boolean, updatedActiv
         throw new Error('No activity data provided')
     }
 
-    const gpxData = convertActivityToGpx(activityData)
-    const gpxFilePath = await writeGpxFile(gpxData)
+    const gpxData: string = convertActivityToGpx(activityData)
+    const gpxFilePath: string = await writeGpxFile(gpxData)
 
     if (!previewEnabled) {
         await uploadToStrava(gpxFilePath)

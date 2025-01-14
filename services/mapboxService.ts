@@ -6,6 +6,7 @@ const MAPBOX_BASE_URL = 'https://api.mapbox.com/directions/v5/mapbox'
 
 export async function getDirections(startLon: number, startLat: number, endLon: number, endLat: number): Promise<number[][]> {
     try {
+        // Call Mapbox Directions API to get the route between the given points
         const url = `${MAPBOX_BASE_URL}/walking/${startLon},${startLat};${endLon},${endLat}?geometries=geojson&access_token=${process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN}`
         const response = await axios.get(url)
 

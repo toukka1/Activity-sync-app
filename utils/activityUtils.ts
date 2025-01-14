@@ -75,7 +75,6 @@ export async function updateActivityWithNewStartPoint(activityData: ActivityData
     newStartPoint: { latitude: number; longitude: number })
 : Promise<Waypoint[]> {
     try {
-    // Call Mapbox Directions API to get the route between the newStartPoint and original start point
         const route = await getDirections(
             newStartPoint.longitude,
             newStartPoint.latitude,

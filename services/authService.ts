@@ -26,9 +26,9 @@ export async function storeTokens(data: any) {
     await SecureStore.setItemAsync('strava_expires_at', expires_at.toString())
 }
 
-export async function refreshAccessToken() {
+export async function refreshAccessToken(): Promise<string | null> {
     try {
-        const refreshToken = await SecureStore.getItemAsync('strava_refresh_token')
+        const refreshToken  = await SecureStore.getItemAsync('strava_refresh_token')
         if (!refreshToken) {
             throw new Error('No refresh token found')
         }
@@ -45,7 +45,7 @@ export async function refreshAccessToken() {
     }
 }
 
-export async function getAccessToken() {
+export async function getAccessToken(): Promise<string | null> {
     const expiresAt = await SecureStore.getItemAsync('strava_expires_at')
     const currentTime = Math.floor(Date.now() / 1000)
 
@@ -58,7 +58,7 @@ export async function getAccessToken() {
 
 export async function disconnectStrava() {
     try {
-        const accessToken = await getAccessToken()
+        const accessToken: string | null = await getAccessToken()
         if (accessToken) {
             await axios.post(discovery.revocationEndpoint, {}, {
                 headers: { Authorization: `Bearer ${accessToken}` },
