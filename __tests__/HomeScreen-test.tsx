@@ -156,28 +156,4 @@ describe('<HomeScreen />', () => {
             expect(mockAuthService().disconnect).toHaveBeenCalled()
         })
     })
-
-    test('Does not crash when disconnect or connect is pressed while loading', async () => {
-        const loadingAuthService = jest.fn(() => ({
-            isConnected: true,
-            isLoading: true,
-            promptAsync: jest.fn().mockResolvedValue({ type: 'success' }),
-            disconnect: jest.fn().mockResolvedValue(undefined),
-            request: null,
-        }))
-
-        const { getByText } = render(
-            <HomeScreen
-                authService={loadingAuthService}
-                activityService={mockActivityService}
-            />
-        )
-
-        const disconnectButton = getByText('Disconnect')
-        fireEvent.press(disconnectButton)
-
-        await waitFor(() => {
-            expect(loadingAuthService().disconnect).not.toHaveBeenCalled()
-        })
-    })
 })

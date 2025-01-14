@@ -1,5 +1,5 @@
 import React from 'react'
-import { StyleSheet, Text, View, TouchableOpacity, Switch } from 'react-native'
+import { StyleSheet, Text, View, TouchableOpacity, ActivityIndicator, Switch } from 'react-native'
 
 import MapModal from './MapModal'
 import { ActivityData, StravaAuthHook, HandleActivityUploadType } from '../types/types'
@@ -62,12 +62,17 @@ export default function HomeScreen({ activityService, authService }: HomeScreenP
             {isConnected ? <Text style={styles.text}>Connected to Strava</Text> : null}
 
             <TouchableOpacity
-                style={isConnected ? styles.disconnectButton : styles.connectButton}
-                onPress={isLoading ? () => {} : (isConnected ? disconnect : handleConnect)}
+                style={isLoading ? styles.disabledButton : (isConnected ? styles.disconnectButton : styles.connectButton)}
+                onPress={isConnected ? disconnect : handleConnect}
+                disabled={isLoading}
             >
-                <Text style={styles.buttonText}>
-                    {isConnected ? 'Disconnect' : 'Connect to Strava'}
-                </Text>
+                {isLoading ? (
+                    <ActivityIndicator color="#fff" />
+                ) : (
+                    <Text style={styles.buttonText}>
+                        {isConnected ? 'Disconnect' : 'Connect to Strava'}
+                    </Text>
+                )}
             </TouchableOpacity>
 
             {activityData && (
@@ -123,6 +128,13 @@ const styles = StyleSheet.create({
         padding: 10,
         borderRadius: 5,
         marginTop: 10,
+    },
+    disabledButton: {
+        backgroundColor: 'green',
+        padding: 10,
+        borderRadius: 5,
+        marginTop: 10,
+        paddingHorizontal: 50,
     },
     row: {
         flexDirection: 'row',
