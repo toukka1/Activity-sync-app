@@ -71,9 +71,11 @@ export default async function parseOPHealthData(file: FileData): Promise<Activit
     return activityData
 }
 
-export async function updateActivityWithNewStartPoint(activityData: ActivityData,
+export async function updateActivityWithNewStartPoint(activityData: ActivityData | null,
     newStartPoint: { latitude: number; longitude: number })
 : Promise<Waypoint[]> {
+
+    if (!activityData) return []
     try {
         const route = await getDirections(
             newStartPoint.longitude,

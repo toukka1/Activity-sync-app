@@ -6,6 +6,8 @@ import ActivityList from '../components/ActivityList'
 import { ActivityData, StravaAuthHook, HandleActivityUploadType } from '../types/types'
 import { useHomeScreenState } from '../hooks/useHomeScreenState'
 import { useDirectoryState } from '../hooks/useDirectoryState'
+import { handleActivityUpload } from '../services/activityService'
+import { useStravaAuthRequest } from '../services/authService'
 import { pickDirectory } from '../services/fileService'
 
 import logger from '../utils/logger'
@@ -15,7 +17,7 @@ type HomeScreenProps = {
     authService: () => StravaAuthHook
 }
 
-export default function HomeScreen({ activityService, authService }: HomeScreenProps) {
+export default function HomeScreen() {
     const {
         isModalVisible,
         setModalVisible,
@@ -25,11 +27,11 @@ export default function HomeScreen({ activityService, authService }: HomeScreenP
         togglePreview,
         closeModal,
     } = useHomeScreenState()
-    const { isConnected, promptAsync, isLoading, disconnect } = authService()
+    const { isConnected, promptAsync, isLoading, disconnect } = useStravaAuthRequest()
     const { directoryUri, updateDirectoryUri } = useDirectoryState()
 
     async function handleFileUpload() {
-        const { activityData } = await activityService(previewEnabled)
+        const { activityData } = await handleActivityUpload(previewEnabled)
 
         if (previewEnabled) {
             setActivityData(activityData)
@@ -45,8 +47,12 @@ export default function HomeScreen({ activityService, authService }: HomeScreenP
         if (uri) updateDirectoryUri(uri)
     }
 
+    async function handleResetUri() {
+        updateDirectoryUri(null)
+    }
+
     async function handleUpdatedActivityUpload(updatedData: ActivityData) {
-        await activityService(false, updatedData)
+        await handleActivityUpload(false, updatedData)
     }
 
     async function handleConnect() {
@@ -56,6 +62,12 @@ export default function HomeScreen({ activityService, authService }: HomeScreenP
     return (
         <View style={styles.container}>
             <ActivityList directoryUri={directoryUri} />
+            <TouchableOpacity
+                style={styles.browseButton}
+                onPress={handleResetUri}
+            >
+                <Text style={styles.buttonText}>reset</Text>
+            </TouchableOpacity>
             <View style={styles.row}>
                 <Text>Enable Map Preview</Text>
                 <Switch value={previewEnabled} onValueChange={togglePreview} />

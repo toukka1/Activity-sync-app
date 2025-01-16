@@ -1,21 +1,18 @@
 import React, { useEffect, useState } from 'react'
 import { View, Text, Button, Modal, StyleSheet, TouchableOpacity } from 'react-native'
 import MapView, { Polyline, Marker, PROVIDER_GOOGLE } from 'react-native-maps'
+import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 
 import { calculateTotalDistance, calculateBoundingBox, updateActivityWithNewStartPoint } from '../utils/activityUtils'
-import { Waypoint, ActivityData } from '../types/types'
+import { Waypoint, ActivityData, RootStackParamList } from '../types/types'
 
 import logger from '../utils/logger'
 
 
-type MapModalProps = {
-    activityData: ActivityData
-    isVisible: boolean
-    onConfirm: (updatedData: ActivityData) => void
-    onClose: () => void
-}
+type Props = NativeStackScreenProps<RootStackParamList, 'MapScreen'>
 
-export default function MapModal({ activityData, isVisible, onConfirm, onClose }: MapModalProps) {
+export default function MapModal({ route, navigation }: Props) {
+    const [activityData, setActivityData] = useState<ActivityData | null>(null)
     const [waypoints, setWaypoints] = useState<Waypoint[]>([])
     const [distance, setDistance] = useState<number>(0)
     const [avgHeartRate, setAvgHeartRate] = useState<number>(0)
@@ -35,19 +32,24 @@ export default function MapModal({ activityData, isVisible, onConfirm, onClose }
     })
 
     useEffect(() => {
-        if (activityData.waypoints) {
-            loadData()
-        }
-    }, [activityData])
+        loadData()
+    }, [route.params.activityData])
 
     async function loadData() {
+        const data: ActivityData = JSON.parse(route.params.activityData)
+        if (!data) return
+
+        setActivityData(data)
+
+        if (!activityData) return
+
         const totalDistance = calculateTotalDistance(activityData.waypoints)
 
         setWaypoints(activityData.waypoints)
         setDistance(totalDistance)
-        setAvgHeartRate(activityData.avgHeartRate)
-        setCadence(activityData.avgFrequency)
-        setStartPoint(activityData.startPoint)
+        setAvgHeartRate(data.avgHeartRate)
+        setCadence(data.avgFrequency)
+        setStartPoint(data.startPoint)
 
         const boundingBox = calculateBoundingBox(activityData.waypoints)
         setRegion({
@@ -59,18 +61,14 @@ export default function MapModal({ activityData, isVisible, onConfirm, onClose }
     }
 
     async function resetStartingPoint() {
+        if (!activityData) return
+
         const totalDistance = calculateTotalDistance(activityData.waypoints)
 
         setWaypoints(activityData.waypoints)
         setDistance(totalDistance)
         setStartPoint(activityData.startPoint)
         setResetStartPointActive(false)
-    }
-
-    async function handleConfirm() {
-        activityData.waypoints = waypoints // Use the route confirmed by the user
-        onConfirm(activityData)
-        onClose()
     }
 
     async function recalculateRoute(newStartPoint: { latitude: number; longitude: number }) {
@@ -87,9 +85,13 @@ export default function MapModal({ activityData, isVisible, onConfirm, onClose }
         }
     }
 
+    function handleReturn() {
+        navigation.goBack()
+    }
+
     return (
         <Modal
-            visible={isVisible}
+            visible={true}
             transparent={true}
             animationType="slide"
         >
@@ -99,7 +101,7 @@ export default function MapModal({ activityData, isVisible, onConfirm, onClose }
                     <Text style={styles.infoText}>Activity details:</Text>
 
                     {/* Map displaying the GPX route */}
-                    {activityData && (
+                    {route.params.activityData && (
                         <MapView
                             provider={PROVIDER_GOOGLE}
                             style={styles.map}
@@ -131,13 +133,10 @@ export default function MapModal({ activityData, isVisible, onConfirm, onClose }
                     <Text style={styles.infoText}>Avg Heart Rate: {avgHeartRate.toFixed(0)} bpm</Text>
                     <Text style={styles.infoText}>Cadence: {cadence.toFixed(0)} spm</Text>
 
-                    {/* Confirm and Cancel Buttons */}
-                    <View style={styles.buttonRow}>
-                        <Button title="Confirm Upload" onPress={handleConfirm} />
-                        <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-                            <Text style={styles.closeButtonText}>Cancel</Text>
-                        </TouchableOpacity>
-                    </View>
+                    <Button title="Return"
+                        onPress={handleReturn}
+                    />
+
                 </View>
             </View>
         </Modal>

@@ -1,6 +1,11 @@
 import { LatLng } from 'react-native-maps'
 import { AuthSessionResult, AuthRequest } from 'expo-auth-session'
 
+export type RootStackParamList = {
+    Home: undefined;
+    MapScreen: { activityData: string }
+}
+
 export type DetailData = {
     timeStamp: number
     elevation: number
