@@ -23,10 +23,11 @@
       "!**/babel.config.js",
       "!**/expo-env.d.ts",
       "!**/.expo/**"
-     ]
+    ]
   },
   "dependencies": {
     "@expo/metro-runtime": "~4.0.0",
+    "@react-native-async-storage/async-storage": "^2.1.0",
     "@testing-library/react-native": "^13.0.0",
     "axios": "^1.7.2",
     "eas-cli": "^13.2.3",

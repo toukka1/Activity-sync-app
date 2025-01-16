@@ -2,8 +2,11 @@ import React from 'react'
 import { StyleSheet, Text, View, TouchableOpacity, ActivityIndicator, Switch } from 'react-native'
 
 import MapModal from './MapModal'
+import ActivityList from '../components/ActivityList'
 import { ActivityData, StravaAuthHook, HandleActivityUploadType } from '../types/types'
 import { useHomeScreenState } from '../hooks/useHomeScreenState'
+import { useDirectoryState } from '../hooks/useDirectoryState'
+import { pickDirectory } from '../services/fileService'
 
 import logger from '../utils/logger'
 
@@ -23,6 +26,7 @@ export default function HomeScreen({ activityService, authService }: HomeScreenP
         closeModal,
     } = useHomeScreenState()
     const { isConnected, promptAsync, isLoading, disconnect } = authService()
+    const { directoryUri, updateDirectoryUri } = useDirectoryState()
 
     async function handleFileUpload() {
         const { activityData } = await activityService(previewEnabled)
@@ -35,6 +39,12 @@ export default function HomeScreen({ activityService, authService }: HomeScreenP
         }
     }
 
+    async function handlePickDirectory() {
+        const uri = await pickDirectory()
+        logger.info(uri)
+        if (uri) updateDirectoryUri(uri)
+    }
+
     async function handleUpdatedActivityUpload(updatedData: ActivityData) {
         await activityService(false, updatedData)
     }
@@ -45,6 +55,7 @@ export default function HomeScreen({ activityService, authService }: HomeScreenP
 
     return (
         <View style={styles.container}>
+            <ActivityList directoryUri={directoryUri} />
             <View style={styles.row}>
                 <Text>Enable Map Preview</Text>
                 <Switch value={previewEnabled} onValueChange={togglePreview} />
@@ -53,7 +64,7 @@ export default function HomeScreen({ activityService, authService }: HomeScreenP
 
             <TouchableOpacity
                 style={isConnected ? styles.browseButton : styles.opaqueBrowseButton}
-                onPress={handleFileUpload}
+                onPress={handlePickDirectory}
                 disabled={!isConnected}
             >
                 <Text style={styles.buttonText}>Browse</Text>

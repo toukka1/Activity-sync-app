@@ -3,7 +3,7 @@ import * as FileSystem from 'expo-file-system'
 import { Alert } from 'react-native'
 
 import { FileData, ActivityData } from '../types/types'
-import parseOPHealthFile from '../utils/activityUtils'
+import parseOPHealthData from '../utils/activityUtils'
 
 import logger from '../utils/logger'
 
@@ -12,7 +12,7 @@ export async function pickAndParseFile(): Promise<ActivityData | null> {
         const uri = await pickFile()
         const fileContent = await readFileContent(uri)
         const fileContentJson: FileData = JSON.parse(fileContent)
-        const activityData: ActivityData = await parseOPHealthFile(fileContentJson)
+        const activityData: ActivityData = await parseOPHealthData(fileContentJson)
 
         return activityData
     } catch (error: any) {
@@ -40,6 +40,41 @@ async function pickFile(): Promise<string> {
     }
 
     return result.assets[0].uri
+}
+
+export async function pickDirectory(): Promise<string | null> {
+    try {
+        const permission = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync()
+        if (permission.granted) {
+            return permission.directoryUri
+        }
+        return null
+    } catch (error) {
+        throw new Error('Error picking directory.')
+    }
+}
+
+export async function parseActivitiesFromDirectory(directoryUri: string): Promise<ActivityData[]> {
+    const activities: ActivityData[] = []
+
+    try {
+        const files = await FileSystem.StorageAccessFramework.readDirectoryAsync(directoryUri)
+
+        for (const file of files) {
+            try {
+                const fileContent = await readFileContent(file)
+                const fileContentJson: FileData = JSON.parse(fileContent)
+                const activityData: ActivityData = await parseOPHealthData(fileContentJson)
+                activities.push(activityData)
+            } catch (error) {
+                logger.error('Failed to process file.')
+            }
+        }
+
+        return activities
+    } catch (error) {
+        throw new Error('Error reading directory.')
+    }
 }
 
 async function readFileContent(uri: string): Promise<string> {

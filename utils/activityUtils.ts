@@ -19,7 +19,7 @@ function resolveSportType (numericSportType: number) {
     return (result === undefined) ? 'Other' : result
 }
 
-export default async function parseOPHealthFile(file: FileData): Promise<ActivityData> {
+export default async function parseOPHealthData(file: FileData): Promise<ActivityData> {
 
     if (!file.gpsData || file.gpsData.length === 0 || !file.detailData || file.detailData.length === 0) {
         throw new Error('GPS or detail data missing in the provided file.')
