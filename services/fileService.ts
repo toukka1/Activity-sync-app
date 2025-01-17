@@ -64,7 +64,10 @@ export async function parseActivitiesFromDirectory(directoryUri: string): Promis
             try {
                 const fileContent = await readFileContent(file)
                 const fileContentJson: FileData = JSON.parse(fileContent)
-                const activityData: ActivityData = await parseOPHealthData(fileContentJson)
+                let activityData: ActivityData = await parseOPHealthData(fileContentJson)
+                const decodedUri = decodeURIComponent(file)
+                const filename = decodedUri.split('/').pop()
+                activityData.id = filename ?? ''
                 activities.push(activityData)
             } catch (error) {
                 logger.error('Failed to process file.')

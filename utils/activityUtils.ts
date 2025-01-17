@@ -44,7 +44,7 @@ export default async function parseOPHealthData(file: FileData): Promise<Activit
             return [{
                 latitude: point.latitude,
                 longitude: point.longitude,
-                timeStamp: new Date(data.timeStamp * 1000),
+                timeStamp: data.timeStamp * 1000,
                 elevation: data.elevation / 10,
                 heartRate: data.heartRate !== 0 ? data.heartRate : file.avgHeartRate,
                 cadence: data.frequency / 2,
@@ -56,6 +56,7 @@ export default async function parseOPHealthData(file: FileData): Promise<Activit
         : 0
 
     const activityData: ActivityData = {
+        id: '',
         startTime: file.startTime * 1000,
         totalTime: file.totalTime,
         sportType: resolveSportType(file.sportType),
@@ -106,7 +107,7 @@ export async function updateActivityWithNewStartPoint(activityData: ActivityData
         let accumulatedTime = newStartTime
         const newWaypoints: Waypoint[] = route.map((point, index) => {
             accumulatedTime += timeIntervals[index] * 1000
-            const timeStamp = new Date(accumulatedTime)
+            const timeStamp = accumulatedTime
 
             return {
                 latitude: point[1],
@@ -134,7 +135,7 @@ export function convertActivityToGpx(activity: ActivityData): string {
 
         const extension: TrackPointExtension = {
             ele: waypoint.elevation,
-            time: waypoint.timeStamp,
+            time: new Date(waypoint.timeStamp),
             cad: waypoint.cadence,
             hr: waypoint.heartRate
         }

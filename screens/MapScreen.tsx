@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
 import MapView, { Polyline, Marker, PROVIDER_GOOGLE } from 'react-native-maps'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 
+import { handleActivityUpload } from '../services/activityService'
 import { calculateTotalDistance, calculateBoundingBox, updateActivityWithNewStartPoint } from '../utils/activityUtils'
 import { Waypoint, ActivityData, RootStackParamList } from '../types/types'
 import formatter from '../utils/formatter'
@@ -55,6 +56,17 @@ export default function MapScreen({ route, navigation }: Props) {
             latitudeDelta: boundingBox.latitudeDelta,
             longitudeDelta: boundingBox.longitudeDelta,
         })
+    }
+
+    async function handleUpload() {
+        try {
+            if (activityData) {
+                activityData.waypoints = waypoints
+            }
+            await handleActivityUpload(activityData)
+        } catch (error) {
+            logger.error('Failed to upload activity:', error)
+        }
     }
 
     async function resetStartingPoint() {
@@ -135,8 +147,8 @@ export default function MapScreen({ route, navigation }: Props) {
                     </View>
                     <TouchableOpacity
                         style={resetStartPointActive ? styles.resetButton : styles.disabledButton}
-                        onPress={resetStartingPoint}
-                        disabled={!resetStartPointActive}
+                        onPress={handleUpload}
+                        disabled={false}
                     >
                         <Text style={styles.buttonText}>Reset starting point</Text>
                     </TouchableOpacity>

@@ -3,7 +3,6 @@ import { StyleSheet, Text, View, TouchableOpacity, ActivityIndicator } from 'rea
 
 import ActivityList from '../components/ActivityList'
 import { useDirectoryState } from '../hooks/useDirectoryState'
-import { handleActivityUpload } from '../services/activityService'
 import { useStravaAuthRequest } from '../services/authService'
 import { pickDirectory } from '../services/fileService'
 
@@ -16,7 +15,6 @@ export default function HomeScreen() {
 
     async function handlePickDirectory() {
         const uri = await pickDirectory()
-        logger.info(uri)
         if (uri) updateDirectoryUri(uri)
     }
 

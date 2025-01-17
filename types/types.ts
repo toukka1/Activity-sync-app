@@ -41,6 +41,7 @@ export type TrackPointExtension = {
 }
 
 export type ActivityData = {
+    id: string
     startTime: number
     totalTime: number
     sportType: string
@@ -61,7 +62,7 @@ export type FormDataFile = {
 }
 
 export interface  Waypoint extends LatLng {
-    timeStamp: Date
+    timeStamp: number
     elevation: number
     heartRate: number
     cadence: number

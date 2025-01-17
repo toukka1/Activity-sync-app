@@ -1,11 +1,10 @@
 import { convertActivityToGpx } from '../utils/activityUtils'
-import { pickAndParseFile, writeGpxFile } from '../services/fileService'
+import { writeGpxFile } from '../services/fileService'
 import { uploadToStrava } from '../services/stravaService'
 import { ActivityData } from '../types/types'
 
-export const handleActivityUpload = async (previewEnabled: boolean, updatedActivityData: ActivityData | null = null) => {
-    const activityData = updatedActivityData ?? await pickAndParseFile()
 
+export const handleActivityUpload = async (activityData: ActivityData | null) => {
     if (!activityData) {
         throw new Error('No activity data provided')
     }
@@ -13,9 +12,7 @@ export const handleActivityUpload = async (previewEnabled: boolean, updatedActiv
     const gpxData: string = convertActivityToGpx(activityData)
     const gpxFilePath: string = await writeGpxFile(gpxData)
 
-    if (!previewEnabled) {
-        await uploadToStrava(gpxFilePath)
-    }
+    await uploadToStrava(gpxFilePath, activityData.id)
 
     return { activityData, gpxFilePath }
 }
