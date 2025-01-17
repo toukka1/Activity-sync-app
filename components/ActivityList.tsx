@@ -40,8 +40,8 @@ export default function ActivityList({ directoryUri }: { directoryUri: string | 
 
 const styles = StyleSheet.create({
     container: {
-        height: 561,
-        width: 424,
+        height: '75%',
+        width: '100%',
         borderWidth: 1,
         borderColor: '#ddd',
     },

@@ -1,10 +1,9 @@
-import { StyleSheet, View, StatusBar, Text } from 'react-native'
+import { StatusBar } from 'react-native'
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 
 import HomeScreen from './screens/HomeScreen'
-import MapModal from './screens/MapModal'
-import Banner from './components/Banner'
+import MapScreen from './screens/MapScreen'
 import { RootStackParamList } from './types/types'
 
 
@@ -16,12 +15,15 @@ function RootStack() {
             initialRouteName="Home"
             screenOptions={{
                 headerStyle: { backgroundColor: '#007AFF' },
+                headerTitleStyle: { color: '#fff', fontWeight: 'bold' },
+                headerTintColor: '#fff',
             }}
         >
-            <Stack.Screen name="Home" component={HomeScreen} />
+            <Stack.Screen name="Home" component={HomeScreen} options={{ title: 'Activity Sync'}}/>
             <Stack.Screen
                 name="MapScreen"
-                component={MapModal}
+                component={MapScreen}
+                options={{ title: 'Details'}}
                 initialParams={{ activityData: '' }}/>
         </Stack.Navigator>
     )
@@ -35,12 +37,3 @@ export default function App() {
         </NavigationContainer>
     )
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#ff2',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-})

@@ -22,6 +22,7 @@ export type GpsData = {
 }
 
 export type FileData = {
+    totalTime: number
     totalDistance: number
     avgSpeed: number
     avgHeartRate: number
@@ -41,6 +42,7 @@ export type TrackPointExtension = {
 
 export type ActivityData = {
     startTime: number
+    totalTime: number
     sportType: string
     totalDistance: number
     avgSpeed: number

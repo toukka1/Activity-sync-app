@@ -1,10 +1,7 @@
 import React from 'react'
-import { StyleSheet, Text, View, TouchableOpacity, ActivityIndicator, Switch } from 'react-native'
+import { StyleSheet, Text, View, TouchableOpacity, ActivityIndicator } from 'react-native'
 
-import MapModal from './MapModal'
 import ActivityList from '../components/ActivityList'
-import { ActivityData, StravaAuthHook, HandleActivityUploadType } from '../types/types'
-import { useHomeScreenState } from '../hooks/useHomeScreenState'
 import { useDirectoryState } from '../hooks/useDirectoryState'
 import { handleActivityUpload } from '../services/activityService'
 import { useStravaAuthRequest } from '../services/authService'
@@ -12,34 +9,10 @@ import { pickDirectory } from '../services/fileService'
 
 import logger from '../utils/logger'
 
-type HomeScreenProps = {
-    activityService: HandleActivityUploadType
-    authService: () => StravaAuthHook
-}
 
 export default function HomeScreen() {
-    const {
-        isModalVisible,
-        setModalVisible,
-        activityData,
-        setActivityData,
-        previewEnabled,
-        togglePreview,
-        closeModal,
-    } = useHomeScreenState()
     const { isConnected, promptAsync, isLoading, disconnect } = useStravaAuthRequest()
     const { directoryUri, updateDirectoryUri } = useDirectoryState()
-
-    async function handleFileUpload() {
-        const { activityData } = await handleActivityUpload(previewEnabled)
-
-        if (previewEnabled) {
-            setActivityData(activityData)
-            setModalVisible(true)
-        } else {
-            logger.info('GPX file uploaded directly.')
-        }
-    }
 
     async function handlePickDirectory() {
         const uri = await pickDirectory()
@@ -49,10 +22,6 @@ export default function HomeScreen() {
 
     async function handleResetUri() {
         updateDirectoryUri(null)
-    }
-
-    async function handleUpdatedActivityUpload(updatedData: ActivityData) {
-        await handleActivityUpload(false, updatedData)
     }
 
     async function handleConnect() {
@@ -68,10 +37,6 @@ export default function HomeScreen() {
             >
                 <Text style={styles.buttonText}>reset</Text>
             </TouchableOpacity>
-            <View style={styles.row}>
-                <Text>Enable Map Preview</Text>
-                <Switch value={previewEnabled} onValueChange={togglePreview} />
-            </View>
             <Text style={styles.text}>Choose an activity to upload</Text>
 
             <TouchableOpacity
@@ -97,15 +62,6 @@ export default function HomeScreen() {
                     </Text>
                 )}
             </TouchableOpacity>
-
-            {activityData && (
-                <MapModal
-                    activityData={activityData}
-                    isVisible={isModalVisible}
-                    onConfirm={handleUpdatedActivityUpload}
-                    onClose={closeModal}
-                />
-            )}
         </View>
     )
 }

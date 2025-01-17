@@ -57,6 +57,7 @@ export default async function parseOPHealthData(file: FileData): Promise<Activit
 
     const activityData: ActivityData = {
         startTime: file.startTime * 1000,
+        totalTime: file.totalTime,
         sportType: resolveSportType(file.sportType),
         totalDistance: file.totalDistance,
         avgSpeed: file.avgSpeed,
@@ -200,9 +201,9 @@ export function calculateBoundingBox(coordinates: Waypoint[]) {
     const maxLon = Math.max(...lons)
 
     return {
-        latitudeDelta: maxLat - minLat + 0.01,
-        longitudeDelta: maxLon - minLon + 0.01,
-        centerLatitude: (minLat + maxLat) / 2,
+        latitudeDelta: maxLat - minLat + 0.02,
+        longitudeDelta: maxLon - minLon + 0.02,
+        centerLatitude: (minLat + maxLat) / 2 - 0.005,
         centerLongitude: (minLon + maxLon) / 2
     }
 }
