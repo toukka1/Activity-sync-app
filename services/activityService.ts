@@ -14,6 +14,7 @@ export async function handleActivityUpload(activityData: ActivityData) {
         const gpxFilePath: string = await writeGpxFile(gpxData)
 
         await uploadToStrava(gpxFilePath, activityData.id)
+        await saveActivityIdToCache(activityData.id)
     }catch (error) {
         logger.error('Error uploading activity to Strava:', error)
         throw new Error('Error uploading activity to Strava.')

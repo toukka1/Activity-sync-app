@@ -205,7 +205,7 @@ export function calculateBoundingBox(coordinates: Waypoint[]) {
     return {
         latitudeDelta: maxLat - minLat + 0.02,
         longitudeDelta: maxLon - minLon + 0.02,
-        centerLatitude: (minLat + maxLat) / 2 - 0.005,
+        centerLatitude: (minLat + maxLat) / 2 - 0.007,
         centerLongitude: (minLon + maxLon) / 2
     }
 }

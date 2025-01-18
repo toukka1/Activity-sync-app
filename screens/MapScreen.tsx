@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native'
 import MapView, { Polyline, Marker, PROVIDER_GOOGLE } from 'react-native-maps'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 
@@ -59,13 +59,35 @@ export default function MapScreen({ route, navigation }: Props) {
     }
 
     async function handleUpload() {
+        if (!activityData) return
         try {
-            if (activityData) {
-                activityData.waypoints = waypoints
-            }
-            await handleActivityUpload(activityData)
+            Alert.alert(
+                'Confirm Upload',
+                'Sync activity to Strava with current route?',
+                [
+                    {
+                        text: 'Cancel',
+                        style: 'cancel',
+                        onPress: () => {
+                            logger.info('Upload canceled by user')
+                        },
+                    },
+                    {
+                        text: 'OK',
+                        onPress: async () => {
+                            try {
+                                activityData.waypoints = waypoints
+                                await handleActivityUpload(activityData)
+                            } catch (error) {
+                                logger.error('Failed to upload activity:', error)
+                            }
+                        },
+                    },
+                ],
+                { cancelable: true } // User can dismiss the dialog by tapping outside
+            )
         } catch (error) {
-            logger.error('Failed to upload activity:', error)
+            logger.error('Failed to show confirmation dialog:', error)
         }
     }
 
@@ -146,11 +168,17 @@ export default function MapScreen({ route, navigation }: Props) {
                         </View>
                     </View>
                     <TouchableOpacity
-                        style={resetStartPointActive ? styles.resetButton : styles.disabledButton}
-                        onPress={handleUpload}
-                        disabled={false}
+                        style={resetStartPointActive ? styles.button : styles.disabledButton}
+                        onPress={resetStartingPoint}
+                        disabled={!resetStartPointActive}
                     >
                         <Text style={styles.buttonText}>Reset starting point</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={styles.button}
+                        onPress={handleUpload}
+                    >
+                        <Text style={styles.buttonText}>Save</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -168,7 +196,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         bottom: 15,
         width: '90%',
-        height: '34%',
+        height: '39%',
         backgroundColor: 'rgba(255, 255, 255, 0.92)',
         borderRadius: 20,
         elevation: 95,
@@ -207,12 +235,13 @@ const styles = StyleSheet.create({
         fontSize: 16,
         marginBottom: 10,
     },
-    resetButton: {
+    button: {
         backgroundColor: '#007AFF',
         padding: 7,
         borderRadius: 5,
         alignItems: 'center',
         width: '90%',
+        marginBottom: 7,
     },
     disabledButton: {
         backgroundColor: 'lightgrey',
@@ -220,6 +249,7 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         alignItems: 'center',
         width: '90%',
+        marginBottom: 7,
     },
     buttonText: {
         color: '#fff',
