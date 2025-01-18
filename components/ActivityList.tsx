@@ -12,7 +12,7 @@ const ActivityList = forwardRef(({ directoryUri }: { directoryUri: string | null
     const [activities, setActivities] = useState<ActivityData[]>([])
     const [loading, setLoading] = useState<boolean>(true)
 
-    const loadActivities = async () => {
+    async function loadActivities() {
         if (!directoryUri) return
 
         setLoading(true)
@@ -33,7 +33,8 @@ const ActivityList = forwardRef(({ directoryUri }: { directoryUri: string | null
         }
     }
 
-    const refresh = async () => {
+    // Clear cache and reload activities
+    async function refreshFull() {
         setLoading(true)
         try {
             await refreshCachedActivityIds()
@@ -45,9 +46,22 @@ const ActivityList = forwardRef(({ directoryUri }: { directoryUri: string | null
         }
     }
 
-    // Expose the refresh function to parent components via ref
+    // Only reload load activities
+    async function refresh() {
+        setLoading(true)
+        try {
+            await loadActivities()
+        } catch (error) {
+            logger.error('Failed to refresh activities:', error)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    // Expose the refresh functions to the parent component
     useImperativeHandle(ref, () => ({
-        refresh,
+        refreshFull,
+        refresh
     }))
 
     useEffect(() => {

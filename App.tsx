@@ -19,7 +19,12 @@ function RootStack() {
                 headerTintColor: '#fff',
             }}
         >
-            <Stack.Screen name="Home" component={HomeScreen} options={{ title: 'Activity Sync'}}/>
+            <Stack.Screen
+                name="Home"
+                component={HomeScreen}
+                options={{ title: 'Activity Sync'}}
+                initialParams={{ refresh: false }}
+            />
             <Stack.Screen
                 name="MapScreen"
                 component={MapScreen}

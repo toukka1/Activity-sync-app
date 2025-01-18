@@ -1,19 +1,30 @@
-import React, { useRef } from 'react'
+import React, { useRef, useEffect } from 'react'
 import { StyleSheet, Text, View, TouchableOpacity, ActivityIndicator } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
+import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 
 import ActivityList from '../components/ActivityList'
 import { useDirectoryState } from '../hooks/useDirectoryState'
 import { useStravaAuthRequest } from '../services/authService'
 import { pickDirectory } from '../services/fileService'
+import { RootStackParamList } from '../types/types'
 
 import logger from '../utils/logger'
 
+type Props = NativeStackScreenProps<RootStackParamList, 'Home'>
 
-export default function HomeScreen() {
+export default function HomeScreen({ route, navigation }: Props) {
     const { isConnected, promptAsync, isLoading, disconnect } = useStravaAuthRequest()
     const { directoryUri, updateDirectoryUri } = useDirectoryState()
     const activityListRef = useRef<any>()
+
+    useEffect(() => {
+        if (route.params?.refresh && activityListRef.current) {
+            activityListRef.current.refresh()
+            // Optionally clear the refresh flag to prevent repeated calls
+            navigation.setParams({ refresh: false })
+        }
+    }, [route.params?.refresh, navigation])
 
     async function handlePickDirectory() {
         const uri = await pickDirectory()
@@ -28,9 +39,9 @@ export default function HomeScreen() {
         await promptAsync()
     }
 
-    const handleRefresh = () => {
+    async function handleRefreshFull() {
         if (activityListRef.current) {
-            activityListRef.current.refresh()
+            activityListRef.current.refreshFull()
         }
     }
 
@@ -43,7 +54,7 @@ export default function HomeScreen() {
             >
                 <Text style={styles.buttonText}>reset</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleRefresh}>
+            <TouchableOpacity onPress={handleRefreshFull}>
                 <Ionicons name='refresh-circle' size={40} color='#007AFF' />
             </TouchableOpacity>
             <Text style={styles.text}>Choose an activity to upload</Text>

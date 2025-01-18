@@ -78,6 +78,7 @@ export default function MapScreen({ route, navigation }: Props) {
                             try {
                                 activityData.waypoints = waypoints
                                 await handleActivityUpload(activityData)
+                                navigation.navigate('Home', { refresh: true })
                             } catch (error) {
                                 logger.error('Failed to upload activity:', error)
                             }
