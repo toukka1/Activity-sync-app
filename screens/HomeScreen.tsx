@@ -1,5 +1,6 @@
-import React from 'react'
+import React, { useRef } from 'react'
 import { StyleSheet, Text, View, TouchableOpacity, ActivityIndicator } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 
 import ActivityList from '../components/ActivityList'
 import { useDirectoryState } from '../hooks/useDirectoryState'
@@ -12,6 +13,7 @@ import logger from '../utils/logger'
 export default function HomeScreen() {
     const { isConnected, promptAsync, isLoading, disconnect } = useStravaAuthRequest()
     const { directoryUri, updateDirectoryUri } = useDirectoryState()
+    const activityListRef = useRef<any>()
 
     async function handlePickDirectory() {
         const uri = await pickDirectory()
@@ -26,14 +28,23 @@ export default function HomeScreen() {
         await promptAsync()
     }
 
+    const handleRefresh = () => {
+        if (activityListRef.current) {
+            activityListRef.current.refresh()
+        }
+    }
+
     return (
         <View style={styles.container}>
-            <ActivityList directoryUri={directoryUri} />
+            <ActivityList directoryUri={directoryUri} ref={activityListRef} />
             <TouchableOpacity
                 style={styles.browseButton}
                 onPress={handleResetUri}
             >
                 <Text style={styles.buttonText}>reset</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleRefresh}>
+                <Ionicons name='refresh-circle' size={40} color='#007AFF' />
             </TouchableOpacity>
             <Text style={styles.text}>Choose an activity to upload</Text>
 

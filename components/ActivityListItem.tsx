@@ -8,13 +8,14 @@ import { ActivityData, RootStackParamList } from '../types/types'
 export default function ActivityListItem({ activityData }: { activityData: string }) {
     const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
 
-    const data = JSON.parse(activityData)
+    const data: ActivityData = JSON.parse(activityData)
 
     return (
         <View style={styles.container}>
             <Text style={styles.title}>{'test'}</Text>
             <Text>Distance: {data.totalDistance} km</Text>
             <Text>Date: {data.startTime}</Text>
+            <Text>{data.isSynced ? 'Synced' : 'Not synced'}</Text>
             <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('MapScreen', { activityData: activityData })}>
                 <Text style={styles.buttonText} />
             </TouchableOpacity>

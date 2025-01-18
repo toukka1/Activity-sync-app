@@ -71,7 +71,9 @@ export async function fetchStravaActivities(): Promise<string[]> {
             // Extract external IDs and add them to the array
             activities.forEach((activity: any) => {
                 if (activity.external_id) {
-                    externalIds.push(activity.external_id)
+                    // Remove ".gpx" from the external_id
+                    const strippedId = activity.external_id.replace('.gpx', '')
+                    externalIds.push(strippedId)
                 }
             })
 

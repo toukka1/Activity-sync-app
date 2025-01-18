@@ -67,7 +67,8 @@ export default async function parseOPHealthData(file: FileData): Promise<Activit
         waypoints: waypoints,
         startPoint: { latitude: file.gpsData[0].latitude, longitude: file.gpsData[0].longitude },
         startTimeGps: file.gpsData[0].timeStamp * 1000,
-        avgHeartRateDuringMissingGps: avgHeartRateDuringMissingGps
+        avgHeartRateDuringMissingGps: avgHeartRateDuringMissingGps,
+        isSynced: false
     }
 
     return activityData

@@ -1,20 +1,56 @@
-import React, { useEffect, useState } from 'react'
-import { Text, FlatList, StyleSheet, View } from 'react-native'
+import React, { useEffect, useState, useImperativeHandle, forwardRef } from 'react'
+import { Text, FlatList, StyleSheet, View, ActivityIndicator } from 'react-native'
 
 import { parseActivitiesFromDirectory } from '../services/fileService'
+import { refreshCachedActivityIds, getSyncedActivityIds } from '../services/activityService'
 import ActivityListItem from './ActivityListItem'
 import { ActivityData } from '../types/types'
 
-export default function ActivityList({ directoryUri }: { directoryUri: string | null }) {
+import logger from '../utils/logger'
+
+const ActivityList = forwardRef(({ directoryUri }: { directoryUri: string | null }, ref) => {
     const [activities, setActivities] = useState<ActivityData[]>([])
+    const [loading, setLoading] = useState<boolean>(true)
+
+    const loadActivities = async () => {
+        if (!directoryUri) return
+
+        setLoading(true)
+        try {
+            const parsedActivities: ActivityData[] = await parseActivitiesFromDirectory(directoryUri)
+            const syncedActivityIds: Set<string> = await getSyncedActivityIds()
+
+            const updatedActivities = parsedActivities.map(activity => ({
+                ...activity,
+                isSynced: syncedActivityIds.has(activity.id),
+            }))
+
+            setActivities(updatedActivities)
+        } catch (error) {
+            logger.error('Failed to load activities:', error)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const refresh = async () => {
+        setLoading(true)
+        try {
+            await refreshCachedActivityIds()
+            await loadActivities()
+        } catch (error) {
+            logger.error('Failed to refresh activities:', error)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    // Expose the refresh function to parent components via ref
+    useImperativeHandle(ref, () => ({
+        refresh,
+    }))
 
     useEffect(() => {
-        const loadActivities = async () => {
-            if (directoryUri) {
-                const parsedActivities = await parseActivitiesFromDirectory(directoryUri)
-                setActivities(parsedActivities)
-            }
-        }
         loadActivities()
     }, [directoryUri])
 
@@ -28,15 +64,24 @@ export default function ActivityList({ directoryUri }: { directoryUri: string | 
 
     return (
         <View style={styles.container}>
-            <FlatList
-                data={activities}
-                keyExtractor={(item, index) => index.toString()}
-                renderItem={({ item }) => <ActivityListItem activityData={JSON.stringify(item)} />}
-                contentContainerStyle={styles.listContent}
-            />
+            {loading ? (
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color="#007AFF" />
+                    <Text>Loading activities...</Text>
+                </View>
+            ) : (
+                <FlatList
+                    data={activities}
+                    keyExtractor={(item, index) => index.toString()}
+                    renderItem={({ item }) => <ActivityListItem activityData={JSON.stringify(item)} />}
+                    contentContainerStyle={styles.listContent}
+                />
+            )}
         </View>
     )
-}
+})
+
+export default ActivityList
 
 const styles = StyleSheet.create({
     container: {
@@ -54,5 +99,10 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         paddingVertical: 10,
         textAlign: 'center',
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
 })

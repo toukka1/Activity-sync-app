@@ -53,6 +53,7 @@ export type ActivityData = {
     startPoint: LatLng
     startTimeGps: number
     avgHeartRateDuringMissingGps: number
+    isSynced: boolean
 }
 
 export type FormDataFile = {
