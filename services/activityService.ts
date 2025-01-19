@@ -56,7 +56,6 @@ export async function saveActivityIdToCache(activityId: string) {
     }
 }
 
-// Load activity IDs from cache and convert to a Set
 async function loadActivityIdsFromCache(): Promise<Set<string>> {
     try {
         const idsString = await AsyncStorage.getItem('cached_activity_ids')
