@@ -145,27 +145,27 @@ export default function MapScreen({ route, navigation }: Props) {
                     <View style={styles.modalGrid}>
                         <View style={styles.gridItem}>
                             <Text style={styles.gridHeader}>Distance</Text>
-                            <Text style={styles.gridValue}>{(distance / 1000).toFixed(2)} km</Text>
+                            <Text style={styles.gridValue}>{formatter.distance(distance)}</Text>
                         </View>
                         <View style={styles.gridItem}>
                             <Text style={styles.gridHeader}>Heart Rate</Text>
-                            <Text style={styles.gridValue}>{activityData?.avgHeartRate.toFixed(0)} bpm</Text>
+                            <Text style={styles.gridValue}>{formatter.heartRate(activityData?.avgHeartRate)}</Text>
                         </View>
                         <View style={styles.gridItem}>
                             <Text style={styles.gridHeader}>Cadence</Text>
-                            <Text style={styles.gridValue}>{activityData?.avgFrequency.toFixed(0)} spm</Text>
+                            <Text style={styles.gridValue}>{formatter.cadence(activityData?.avgFrequency)}</Text>
                         </View>
                         <View style={styles.gridItem}>
                             <Text style={styles.gridHeader}>Date</Text>
-                            <Text style={styles.gridValue}>{formatter.formatDate(activityData?.startTime)}</Text>
+                            <Text style={styles.gridValue}>{formatter.date(activityData?.startTime)}</Text>
                         </View>
                         <View style={styles.gridItem}>
                             <Text style={styles.gridHeader}>Duration</Text>
-                            <Text style={styles.gridValue}>{formatter.formatDuration(activityData?.totalTime)}</Text>
+                            <Text style={styles.gridValue}>{formatter.duration(activityData?.totalTime)}</Text>
                         </View>
                         <View style={styles.gridItem}>
                             <Text style={styles.gridHeader}>Pace</Text>
-                            <Text style={styles.gridValue}>{formatter.formatPace(activityData?.avgSpeed)}</Text>
+                            <Text style={styles.gridValue}>{formatter.pace(activityData?.avgSpeed)}</Text>
                         </View>
                     </View>
                     <TouchableOpacity

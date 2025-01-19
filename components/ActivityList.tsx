@@ -96,7 +96,7 @@ const ActivityList = forwardRef(({ directoryUri }: { directoryUri: string | null
     return (
         <View style={styles.container}>
             <Text style={styles.text}>
-                Synced: {syncedCount} / {activityCount}
+                Activities: {syncedCount} / {activityCount} synced
             </Text>
             {loading ? (
                 <View style={styles.loadingContainer}>

@@ -1,4 +1,4 @@
-function formatDate(date: number | undefined): string {
+function date(date: number | undefined): string {
     if (!date) return ''
 
     const dateTime = new Date(date)
@@ -10,7 +10,7 @@ function formatDate(date: number | undefined): string {
     })
 }
 
-function formatDuration(seconds: number | undefined): string {
+function duration(seconds: number | undefined): string {
     if (!seconds) return ''
 
     const hours = Math.floor(seconds / 3600)
@@ -28,7 +28,7 @@ function formatDuration(seconds: number | undefined): string {
     }
 }
 
-function formatPace(secondsPerKm: number | undefined): string {
+function pace(secondsPerKm: number | undefined): string {
     if (!secondsPerKm) return ''
 
     const minutes = Math.floor(secondsPerKm / 60)
@@ -40,8 +40,31 @@ function formatPace(secondsPerKm: number | undefined): string {
     return `${formattedMinutes}:${formattedSeconds} /km`
 }
 
+function distance(meters: number | undefined): string {
+    if (!meters) return ''
+
+    const kilometers = meters / 1000
+
+    return `${kilometers.toFixed(2)} km`
+}
+
+function heartRate(bpm: number | undefined): string {
+    if (!bpm) return ''
+
+    return `${bpm.toFixed(0)} bpm`
+}
+
+function cadence(spm: number | undefined): string {
+    if (!spm) return ''
+
+    return `${spm.toFixed(0)} spm`
+}
+
 export default {
-    formatDate,
-    formatDuration,
-    formatPace
+    date,
+    duration,
+    pace,
+    distance,
+    heartRate,
+    cadence,
 }
