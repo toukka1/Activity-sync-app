@@ -1,5 +1,4 @@
 import axios from 'axios'
-import { Alert } from 'react-native'
 
 import { getAccessToken } from './authService'
 import { FormDataFile } from '../types/types'
@@ -36,10 +35,8 @@ export async function uploadToStrava(fileUri: string, id: string): Promise<void>
         })
 
         logger.info('GPX file uploaded successfully:', response.data)
-        Alert.alert('Upload Success', 'Your activity has been successfully uploaded to Strava!')
     } catch (error) {
         logger.error('Error uploading GPX file to Strava:', error)
-        Alert.alert('Upload Failed', 'There was an error uploading your activity to Strava. Please try again.')
     }
 }
 

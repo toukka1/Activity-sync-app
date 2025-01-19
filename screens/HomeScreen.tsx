@@ -21,7 +21,6 @@ export default function HomeScreen({ route, navigation }: Props) {
     useEffect(() => {
         if (route.params?.refresh && activityListRef.current) {
             activityListRef.current.refresh()
-            // Optionally clear the refresh flag to prevent repeated calls
             navigation.setParams({ refresh: false })
         }
     }, [route.params?.refresh, navigation])
@@ -45,6 +44,12 @@ export default function HomeScreen({ route, navigation }: Props) {
         }
     }
 
+    async function handleSyncActivities() {
+        if (activityListRef.current) {
+            activityListRef.current.syncActivities()
+        }
+    }
+
     return (
         <View style={styles.container}>
             <ActivityList directoryUri={directoryUri} ref={activityListRef} />
@@ -53,6 +58,12 @@ export default function HomeScreen({ route, navigation }: Props) {
                 onPress={handleResetUri}
             >
                 <Text style={styles.buttonText}>reset</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+                style={styles.browseButton}
+                onPress={handleSyncActivities}
+            >
+                <Text style={styles.buttonText}>Sync all</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={handleRefreshFull}>
                 <Ionicons name='refresh-circle' size={40} color='#007AFF' />

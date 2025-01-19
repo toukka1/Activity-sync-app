@@ -2,7 +2,7 @@ import React, { useEffect, useState, useImperativeHandle, forwardRef } from 'rea
 import { Text, FlatList, StyleSheet, View, ActivityIndicator } from 'react-native'
 
 import { parseActivitiesFromDirectory } from '../services/fileService'
-import { refreshCachedActivityIds, getSyncedActivityIds } from '../services/activityService'
+import { refreshCachedActivityIds, getSyncedActivityIds, handleMultipleActivityUpload } from '../services/activityService'
 import ActivityListItem from './ActivityListItem'
 import { ActivityData } from '../types/types'
 
@@ -10,6 +10,8 @@ import logger from '../utils/logger'
 
 const ActivityList = forwardRef(({ directoryUri }: { directoryUri: string | null }, ref) => {
     const [activities, setActivities] = useState<ActivityData[]>([])
+    const [activityCount, setActivityCount] = useState<number>(0)
+    const [syncedCount, setSyncedCount] = useState<number>(0)
     const [loading, setLoading] = useState<boolean>(true)
 
     async function loadActivities() {
@@ -26,8 +28,22 @@ const ActivityList = forwardRef(({ directoryUri }: { directoryUri: string | null
             }))
 
             setActivities(updatedActivities)
+            setActivityCount(updatedActivities.length)
+            setSyncedCount(updatedActivities.filter(activity => activity.isSynced).length)
         } catch (error) {
             logger.error('Failed to load activities:', error)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    async function syncActivities() {
+        setLoading(true)
+        try {
+            await handleMultipleActivityUpload(activities)
+            await loadActivities()
+        } catch (error) {
+            logger.error('Failed to sync activities:', error)
         } finally {
             setLoading(false)
         }
@@ -46,7 +62,7 @@ const ActivityList = forwardRef(({ directoryUri }: { directoryUri: string | null
         }
     }
 
-    // Only reload load activities
+    // Only reload activities
     async function refresh() {
         setLoading(true)
         try {
@@ -58,10 +74,11 @@ const ActivityList = forwardRef(({ directoryUri }: { directoryUri: string | null
         }
     }
 
-    // Expose the refresh functions to the parent component
+    // Expose the functions to the parent component
     useImperativeHandle(ref, () => ({
         refreshFull,
-        refresh
+        refresh,
+        syncActivities,
     }))
 
     useEffect(() => {
@@ -78,6 +95,9 @@ const ActivityList = forwardRef(({ directoryUri }: { directoryUri: string | null
 
     return (
         <View style={styles.container}>
+            <Text style={styles.text}>
+                Synced: {syncedCount} / {activityCount}
+            </Text>
             {loading ? (
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color="#007AFF" />
@@ -99,7 +119,7 @@ export default ActivityList
 
 const styles = StyleSheet.create({
     container: {
-        height: '75%',
+        height: '60%',
         width: '100%',
         borderWidth: 1,
         borderColor: '#ddd',

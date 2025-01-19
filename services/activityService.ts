@@ -9,6 +9,8 @@ import logger from '../utils/logger'
 
 
 export async function handleActivityUpload(activityData: ActivityData) {
+    if (activityData.isSynced) return
+
     try {
         const gpxData: string = convertActivityToGpx(activityData)
         const gpxFilePath: string = await writeGpxFile(gpxData)
@@ -18,6 +20,17 @@ export async function handleActivityUpload(activityData: ActivityData) {
     }catch (error) {
         logger.error('Error uploading activity to Strava:', error)
         throw new Error('Error uploading activity to Strava.')
+    }
+}
+
+export async function handleMultipleActivityUpload(activities: ActivityData[]) {
+    try {
+        for (const activity of activities) {
+            await handleActivityUpload(activity)
+        }
+    } catch (error) {
+        logger.error('Error uploading activities to Strava:', error)
+        throw new Error('Error uploading activities to Strava.')
     }
 }
 
