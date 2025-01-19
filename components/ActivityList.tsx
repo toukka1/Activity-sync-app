@@ -9,30 +9,37 @@ import colors from '../utils/colors'
 
 import logger from '../utils/logger'
 
-function ActivityList({ directoryUri }: { directoryUri: string | null }, ref: React.Ref<any>) {
+
+type ActivityListProps = {
+    directoryUri: string | null
+}
+
+function ActivityList(props: ActivityListProps, ref: React.Ref<any>) {
+    const { directoryUri } = props
+
     const [activities, setActivities] = useState<ActivityData[]>([])
     const [activityCount, setActivityCount] = useState<number>(0)
     const [syncedCount, setSyncedCount] = useState<number>(0)
     const [loading, setLoading] = useState<boolean>(true)
 
+    useImperativeHandle(ref, () => ({
+        refresh: loadActivities,
+        syncActivities,
+    }))
+
+    useEffect(() => {
+        loadActivities()
+    }, [directoryUri])
+
     async function loadActivities() {
         if (!directoryUri) {
-            setActivities([])
-            setActivityCount(0)
-            setSyncedCount(0)
+            resetActivities()
             return
         }
 
         setLoading(true)
         try {
-            const parsedActivities: ActivityData[] = await parseActivitiesFromDirectory(directoryUri)
-            const syncedActivityIds: Set<string> = await getSyncedActivityIds()
-
-            const updatedActivities = parsedActivities.map(activity => ({
-                ...activity,
-                isSynced: syncedActivityIds.has(activity.id),
-            }))
-
+            const updatedActivities = await fetchActivities(directoryUri)
             setActivities(updatedActivities)
             setActivityCount(updatedActivities.length)
             setSyncedCount(updatedActivities.filter(activity => activity.isSynced).length)
@@ -55,27 +62,21 @@ function ActivityList({ directoryUri }: { directoryUri: string | null }, ref: Re
         }
     }
 
-    // Reload activities
-    async function refresh() {
-        setLoading(true)
-        try {
-            await loadActivities()
-        } catch (error) {
-            logger.error('Failed to refresh activities:', error)
-        } finally {
-            setLoading(false)
-        }
+    function resetActivities() {
+        setActivities([])
+        setActivityCount(0)
+        setSyncedCount(0)
     }
 
-    // Expose the functions to the parent component
-    useImperativeHandle(ref, () => ({
-        refresh,
-        syncActivities,
-    }))
+    async function fetchActivities(uri: string): Promise<ActivityData[]> {
+        const parsedActivities = await parseActivitiesFromDirectory(uri)
+        const syncedActivityIds = await getSyncedActivityIds()
 
-    useEffect(() => {
-        loadActivities()
-    }, [directoryUri])
+        return parsedActivities.map(activity => ({
+            ...activity,
+            isSynced: syncedActivityIds.has(activity.id),
+        }))
+    }
 
     if (!directoryUri) {
         return (
