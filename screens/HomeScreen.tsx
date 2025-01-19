@@ -8,6 +8,7 @@ import { useDirectoryState } from '../hooks/useDirectoryState'
 import { useStravaAuthRequest } from '../services/authService'
 import { pickDirectory } from '../services/fileService'
 import { RootStackParamList } from '../types/types'
+import colors from '../utils/colors'
 
 import logger from '../utils/logger'
 
@@ -66,7 +67,7 @@ export default function HomeScreen({ route, navigation }: Props) {
                 <Text style={styles.buttonText}>Sync all</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={handleRefreshFull}>
-                <Ionicons name='refresh-circle' size={40} color='#007AFF' />
+                <Ionicons name='refresh-circle' size={40} color={colors.primary} />
             </TouchableOpacity>
             <Text style={styles.text}>Choose an activity to upload</Text>
 
@@ -86,7 +87,7 @@ export default function HomeScreen({ route, navigation }: Props) {
                 disabled={isLoading}
             >
                 {isLoading ? (
-                    <ActivityIndicator color="#fff" />
+                    <ActivityIndicator color={colors.background}/>
                 ) : (
                     <Text style={styles.buttonText}>
                         {isConnected ? 'Disconnect' : 'Connect to Strava'}
@@ -100,47 +101,47 @@ export default function HomeScreen({ route, navigation }: Props) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
+        backgroundColor: colors.background,
         alignItems: 'center',
         justifyContent: 'center',
     },
     text: {
-        color: '#808080',
+        color: colors.textColor,
         fontSize: 15,
         fontWeight: 'bold',
     },
     buttonText: {
-        color: '#fff',
+        color: colors.background,
         fontSize: 16,
         fontWeight: 'bold',
     },
     browseButton: {
-        backgroundColor: '#007AFF',
+        backgroundColor: colors.primary,
         padding: 10,
         borderRadius: 5,
         marginBottom: 10,
     },
     opaqueBrowseButton: {
-        backgroundColor: '#007AFF',
+        backgroundColor: colors.primary,
         padding: 10,
         borderRadius: 5,
         marginBottom: 10,
         opacity: 0.3,
     },
     connectButton: {
-        backgroundColor: 'green',
+        backgroundColor:colors.success,
         padding: 10,
         borderRadius: 5,
         marginTop: 10,
     },
     disconnectButton: {
-        backgroundColor: 'red',
+        backgroundColor:colors.error,
         padding: 10,
         borderRadius: 5,
         marginTop: 10,
     },
     disabledButton: {
-        backgroundColor: 'green',
+        backgroundColor:colors.success,
         padding: 10,
         borderRadius: 5,
         marginTop: 10,

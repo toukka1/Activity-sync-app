@@ -6,6 +6,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 
 import { ActivityData, RootStackParamList } from '../types/types'
 import formatter from '../utils/formatter'
+import colors from '../utils/colors'
 
 export default function ActivityListItem({ activityData }: { activityData: string }) {
     const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
@@ -21,15 +22,15 @@ export default function ActivityListItem({ activityData }: { activityData: strin
             <View style={styles.statusContainer}>
                 {data.isSynced ? (
                     <>
-                        <Ionicons name='checkmark-circle' size={16} color='green' />
+                        <Ionicons name='checkmark-circle' size={16} color={colors.success}/>
                         <Text style={styles.syncedText}>Synced</Text>
                     </>
                 ) : (
                     <>
-                        <Ionicons name='alert-circle' size={16} color='#A9A9A9' />
+                        <Ionicons name='alert-circle' size={16} color={colors.disabledGray}/>
                         <Text style={styles.unsyncedText}>Not Synced</Text>
                     </>
-                    )}
+                )}
             </View>
 
             <View style={styles.distanceDateContainer}>
@@ -53,7 +54,7 @@ const styles = StyleSheet.create({
         paddingVertical: 13,
         paddingHorizontal: 15,
         borderBottomWidth: 0.5,
-        borderBottomColor: '#ccc',
+        borderBottomColor: colors.border,
     },
     statusContainer: {
         flexDirection: 'row',
@@ -65,12 +66,12 @@ const styles = StyleSheet.create({
     syncedText: {
         fontSize: 14,
         fontWeight: 'bold',
-        color: 'green',
+        color: colors.success,
     },
     unsyncedText: {
         fontSize: 14,
         fontWeight: 'bold',
-        color: '#A9A9A9',
+        color: colors.disabledGray,
     },
     distanceDateContainer: {
         flex: 0.5,
@@ -85,17 +86,17 @@ const styles = StyleSheet.create({
     date: {
         fontSize: 14,
         flex: 1,
-        color: '#808080',
+        color: colors.textColor,
         textAlign: 'center',
     },
     editButton: {
         fontSize: 14,
         fontWeight: 'bold',
-        color: '#007AFF',
+        color: colors.primary,
     },
     editButtonDisabled: {
         fontSize: 14,
         fontWeight: 'bold',
-        color: '#A9A9A9',
+        color: colors.disabledGray,
     },
 })

@@ -7,6 +7,7 @@ import { handleActivityUpload } from '../services/activityService'
 import { calculateTotalDistance, calculateBoundingBox, updateActivityWithNewStartPoint } from '../utils/activityUtils'
 import { Waypoint, ActivityData, RootStackParamList } from '../types/types'
 import formatter from '../utils/formatter'
+import colors from '../utils/colors'
 
 import logger from '../utils/logger'
 
@@ -189,7 +190,7 @@ export default function MapScreen({ route, navigation }: Props) {
 
 const styles = StyleSheet.create({
     container: {
-        backgroundColor: '#fff',
+        backgroundColor: colors.background,
         borderRadius: 10,
         alignItems: 'center',
     },
@@ -220,7 +221,7 @@ const styles = StyleSheet.create({
     gridHeader: {
         fontSize: 14,
         fontWeight: 'bold',
-        color: '#555',
+        color: colors.textColor,
         marginBottom: 5,
     },
     gridValue: {
@@ -237,7 +238,7 @@ const styles = StyleSheet.create({
         marginBottom: 10,
     },
     button: {
-        backgroundColor: '#007AFF',
+        backgroundColor: colors.primary,
         padding: 7,
         borderRadius: 5,
         alignItems: 'center',
@@ -245,7 +246,7 @@ const styles = StyleSheet.create({
         marginBottom: 7,
     },
     disabledButton: {
-        backgroundColor: 'lightgrey',
+        backgroundColor: colors.disabledGray,
         padding: 7,
         borderRadius: 5,
         alignItems: 'center',
@@ -253,7 +254,7 @@ const styles = StyleSheet.create({
         marginBottom: 7,
     },
     buttonText: {
-        color: '#fff',
+        color: colors.background,
         fontSize: 16,
         fontWeight: 'bold',
     },

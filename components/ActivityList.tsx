@@ -5,10 +5,11 @@ import { parseActivitiesFromDirectory } from '../services/fileService'
 import { refreshCachedActivityIds, getSyncedActivityIds, handleMultipleActivityUpload } from '../services/activityService'
 import ActivityListItem from './ActivityListItem'
 import { ActivityData } from '../types/types'
+import colors from '../utils/colors'
 
 import logger from '../utils/logger'
 
-const ActivityList = forwardRef(({ directoryUri }: { directoryUri: string | null }, ref) => {
+function ActivityList({ directoryUri }: { directoryUri: string | null }, ref: React.Ref<any>) {
     const [activities, setActivities] = useState<ActivityData[]>([])
     const [activityCount, setActivityCount] = useState<number>(0)
     const [syncedCount, setSyncedCount] = useState<number>(0)
@@ -100,7 +101,7 @@ const ActivityList = forwardRef(({ directoryUri }: { directoryUri: string | null
             </Text>
             {loading ? (
                 <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color="#007AFF" />
+                    <ActivityIndicator size='large' color={colors.primary} />
                     <Text>Loading activities...</Text>
                 </View>
             ) : (
@@ -113,22 +114,22 @@ const ActivityList = forwardRef(({ directoryUri }: { directoryUri: string | null
             )}
         </View>
     )
-})
+}
 
-export default ActivityList
+export default forwardRef(ActivityList)
 
 const styles = StyleSheet.create({
     container: {
         height: '60%',
         width: '100%',
         borderWidth: 1,
-        borderColor: '#ddd',
+        borderColor: colors.border,
     },
     listContent: {
         padding: 8,
     },
     text: {
-        color: '#808080',
+        color: colors.textColor,
         fontSize: 15,
         fontWeight: 'bold',
         paddingVertical: 10,
