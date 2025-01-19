@@ -2,7 +2,7 @@ import React, { useEffect, useState, useImperativeHandle, forwardRef } from 'rea
 import { Text, FlatList, StyleSheet, View, ActivityIndicator } from 'react-native'
 
 import { parseActivitiesFromDirectory } from '../services/fileService'
-import { refreshCachedActivityIds, getSyncedActivityIds, handleMultipleActivityUpload } from '../services/activityService'
+import { getSyncedActivityIds, handleMultipleActivityUpload } from '../services/activityService'
 import ActivityListItem from './ActivityListItem'
 import { ActivityData } from '../types/types'
 import colors from '../utils/colors'
@@ -16,7 +16,12 @@ function ActivityList({ directoryUri }: { directoryUri: string | null }, ref: Re
     const [loading, setLoading] = useState<boolean>(true)
 
     async function loadActivities() {
-        if (!directoryUri) return
+        if (!directoryUri) {
+            setActivities([])
+            setActivityCount(0)
+            setSyncedCount(0)
+            return
+        }
 
         setLoading(true)
         try {
@@ -50,20 +55,7 @@ function ActivityList({ directoryUri }: { directoryUri: string | null }, ref: Re
         }
     }
 
-    // Clear cache and reload activities
-    async function refreshFull() {
-        setLoading(true)
-        try {
-            await refreshCachedActivityIds()
-            await loadActivities()
-        } catch (error) {
-            logger.error('Failed to refresh activities:', error)
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    // Only reload activities
+    // Reload activities
     async function refresh() {
         setLoading(true)
         try {
@@ -77,7 +69,6 @@ function ActivityList({ directoryUri }: { directoryUri: string | null }, ref: Re
 
     // Expose the functions to the parent component
     useImperativeHandle(ref, () => ({
-        refreshFull,
         refresh,
         syncActivities,
     }))
@@ -120,7 +111,7 @@ export default forwardRef(ActivityList)
 
 const styles = StyleSheet.create({
     container: {
-        height: '60%',
+        height: '70%',
         width: '100%',
         borderWidth: 1,
         borderColor: colors.border,

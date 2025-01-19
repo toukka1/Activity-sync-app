@@ -28,6 +28,7 @@ export async function handleMultipleActivityUpload(activities: ActivityData[]) {
         for (const activity of activities) {
             await handleActivityUpload(activity)
         }
+        await refreshCachedActivityIds()
     } catch (error) {
         logger.error('Error uploading activities to Strava:', error)
         throw new Error('Error uploading activities to Strava.')
@@ -92,7 +93,7 @@ export async function getSyncedActivityIds(): Promise<Set<string>> {
     }
 }
 
-export async function refreshCachedActivityIds(): Promise<Set<string>> {
+async function refreshCachedActivityIds(): Promise<Set<string>> {
     try {
         const fetchedIds = await fetchStravaActivities()
         await saveActivityIdsToCache(fetchedIds)

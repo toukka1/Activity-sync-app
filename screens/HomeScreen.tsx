@@ -31,18 +31,12 @@ export default function HomeScreen({ route, navigation }: Props) {
         if (uri) updateDirectoryUri(uri)
     }
 
-    async function handleResetUri() {
+    async function handleResetDirectory() {
         updateDirectoryUri(null)
     }
 
     async function handleConnect() {
         await promptAsync()
-    }
-
-    async function handleRefreshFull() {
-        if (activityListRef.current) {
-            activityListRef.current.refreshFull()
-        }
     }
 
     async function handleSyncActivities() {
@@ -53,47 +47,63 @@ export default function HomeScreen({ route, navigation }: Props) {
 
     return (
         <View style={styles.container}>
-            <ActivityList directoryUri={directoryUri} ref={activityListRef} />
-            <TouchableOpacity
-                style={styles.browseButton}
-                onPress={handleResetUri}
-            >
-                <Text style={styles.buttonText}>reset</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-                style={styles.browseButton}
-                onPress={handleSyncActivities}
-            >
-                <Text style={styles.buttonText}>Sync all</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={handleRefreshFull}>
-                <Ionicons name='refresh-circle' size={40} color={colors.primary} />
-            </TouchableOpacity>
-            <Text style={styles.text}>Choose an activity to upload</Text>
+            {/* Activity List */}
+            <View style={styles.listContainer}>
+                <ActivityList directoryUri={directoryUri} ref={activityListRef} />
+            </View>
 
-            <TouchableOpacity
-                style={isConnected ? styles.browseButton : styles.opaqueBrowseButton}
-                onPress={handlePickDirectory}
-                disabled={!isConnected}
-            >
-                <Text style={styles.buttonText}>Browse</Text>
-            </TouchableOpacity>
+            {/* Sync button */}
+            <View style={styles.topCenter}>
+                <TouchableOpacity onPress={handleSyncActivities} disabled={directoryUri === null || !isConnected}>
+                    <Ionicons name="sync-circle" size={60} color={directoryUri === null || !isConnected ? colors.disabledGray : colors.primary} />
+                </TouchableOpacity>
+                <Text style={styles.text}>Sync All</Text>
+            </View>
 
-            {isConnected ? <Text style={styles.text}>Connected to Strava</Text> : null}
-
-            <TouchableOpacity
-                style={isLoading ? styles.disabledButton : (isConnected ? styles.disconnectButton : styles.connectButton)}
-                onPress={isConnected ? disconnect : handleConnect}
-                disabled={isLoading}
-            >
-                {isLoading ? (
-                    <ActivityIndicator color={colors.background}/>
+            {/* Browse Directory */}
+            <View style={styles.bottomLeft}>
+                {!directoryUri ? (
+                    <>
+                        <Text style={styles.text}>Select directory</Text>
+                        <TouchableOpacity
+                            style={styles.browseButton}
+                            onPress={handlePickDirectory}
+                        >
+                            <Text style={styles.buttonText}>Browse</Text>
+                        </TouchableOpacity>
+                    </>
                 ) : (
-                    <Text style={styles.buttonText}>
-                        {isConnected ? 'Disconnect' : 'Connect to Strava'}
-                    </Text>
+                    <>
+                        <Text style={styles.text}>Directory chosen</Text>
+                        <TouchableOpacity
+                            style={styles.browseButton}
+                            onPress={handleResetDirectory}
+                        >
+                            <Text style={styles.buttonText}>Reset</Text>
+                        </TouchableOpacity>
+                    </>
                 )}
-            </TouchableOpacity>
+            </View>
+
+            {/* Strava Connection */}
+            <View style={styles.bottomRight}>
+                <Text style={styles.text}>
+                    {isConnected ? 'Connected to Strava' : 'Allow Strava access'}
+                </Text>
+                <TouchableOpacity
+                    style={isLoading ? styles.disabledButton : (isConnected ? styles.disconnectButton : styles.connectButton)}
+                    onPress={isConnected ? disconnect : handleConnect}
+                    disabled={isLoading}
+                >
+                    {isLoading ? (
+                        <ActivityIndicator color={colors.background} size={25} />
+                    ) : (
+                        <Text style={styles.buttonText}>
+                            {isConnected ? 'Disconnect' : 'Connect'}
+                        </Text>
+                    )}
+                </TouchableOpacity>
+            </View>
         </View>
     )
 }
@@ -105,6 +115,30 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
+    listContainer: {
+        flex: 1,
+        width: '100%',
+        position: 'absolute',
+        top: 0,
+        bottom: 0,
+    },
+    topCenter: {
+        position: 'absolute',
+        alignItems: 'center',
+        bottom: 130,
+    },
+    bottomLeft: {
+        position: 'absolute',
+        alignItems: 'center',
+        bottom: 16,
+        left: 16,
+    },
+    bottomRight: {
+        position: 'absolute',
+        alignItems: 'center',
+        bottom: 16,
+        right: 16,
+    },
     text: {
         color: colors.textColor,
         fontSize: 15,
@@ -112,45 +146,43 @@ const styles = StyleSheet.create({
     },
     buttonText: {
         color: colors.background,
+        alignSelf: 'center',
         fontSize: 16,
         fontWeight: 'bold',
     },
     browseButton: {
         backgroundColor: colors.primary,
+        width: 180,
         padding: 10,
         borderRadius: 5,
         marginBottom: 10,
-    },
-    opaqueBrowseButton: {
-        backgroundColor: colors.primary,
-        padding: 10,
-        borderRadius: 5,
-        marginBottom: 10,
-        opacity: 0.3,
+        marginTop: 5,
     },
     connectButton: {
         backgroundColor:colors.success,
+        width: 180,
         padding: 10,
         borderRadius: 5,
-        marginTop: 10,
+        marginBottom: 10,
+        marginTop: 5,
     },
     disconnectButton: {
         backgroundColor:colors.error,
+        width: 180,
         padding: 10,
         borderRadius: 5,
-        marginTop: 10,
+        marginBottom: 10,
+        marginTop: 5,
     },
     disabledButton: {
         backgroundColor:colors.success,
+        width: 180,
         padding: 10,
         borderRadius: 5,
-        marginTop: 10,
-        paddingHorizontal: 50,
+        marginBottom: 10,
+        marginTop: 5,
     },
-    row: {
-        flexDirection: 'row',
+    refreshContainer: {
         alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: 16,
     },
 })
